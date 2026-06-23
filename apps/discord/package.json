@@ -1,10 +1,10 @@
 {
   "name": "discord",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "index.ts",
   "private": true,
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "bun index.ts",
     "build": "tsc"
   },
   "dependencies": {
