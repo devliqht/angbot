@@ -1,0 +1,23 @@
+{
+  "name": "angbot",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+      "apps/*",
+      "packages/*"
+    ],
+  "scripts": {
+      "dev:dashboard": "bun run dev --filter dashboard",
+      "dev:bot": "bun run dev --filter bot",
+      "db:migrate": "bun run prisma migrate dev --cwd packages/database",
+      "db:studio": "bun run prisma studio --cwd packages/database"
+    },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
