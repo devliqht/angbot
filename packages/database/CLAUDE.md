@@ -104,3 +104,10 @@ bun --hot ./index.ts
 ```
 
 For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
+
+# IMPORTANT GIT WORKFLOW
+- ALWAYS Create a distinct Git commit immediately after completing each logical unit of work (e.g., creating a file, fixing a bug, adding a route) AND/OR creating/editing a new file.
+- Formulate descriptive commit messages following the Conventional Commits specification (e.g., "feat(scope):", "fix(scope):", "refactor(scope):").
+- In the commit messages, always add a description.
+- Do not push to the remote repository unless explicitly asked.
