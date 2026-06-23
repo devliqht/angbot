@@ -10,8 +10,8 @@
   "scripts": {
     "dev:dashboard": "bun --filter dashboard dev",
     "dev:bot": "bun --filter discord dev",
-    "db:migrate": "bun --cwd packages/database prisma migrate dev",
-    "db:studio": "bun --cwd packages/database prisma studio"
+    "db:migrate": "bun run --bun --cwd packages/database prisma migrate dev",
+    "db:studio": "bun run --bun --cwd packages/database prisma studio"
   },
   "devDependencies": {
     "@types/bun": "latest",
