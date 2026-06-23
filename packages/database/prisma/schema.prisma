@@ -82,7 +82,7 @@ model Agent {
   name         String
   description  String?  @db.Text
   systemPrompt String   @db.LongText
-  model        String   @default("gemini-2.5-flash") // Gemini model id
+  model        String   @default("gemini-flash-latest") // Gemini model id
   temperature  Float    @default(1.0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -139,7 +139,7 @@ model Chunk {
   position   Int // order within the source document (0-based)
   content    String   @db.LongText
   embedding  Json // float[] Gemini embedding (model below)
-  embedModel String   @default("gemini-embedding-001")
+  embedModel String   @default("gemini-embedding-2")
   tokenCount Int?
   createdAt  DateTime @default(now())
 
