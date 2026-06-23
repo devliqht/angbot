@@ -7,11 +7,12 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [
-			".next/**",
-			"packages/database/generated/**",
-			"packages/database/prisma/migrations/**",
-			"node_modules/**"
+		"includes": [
+			"**",
+			"!!**/.next/**",
+			"!!**/node_modules/**",
+			"!!**/packages/database/generated/**",
+			"!!**/packages/database/prisma/migrations/**"
 		]
 	},
 	"formatter": {
