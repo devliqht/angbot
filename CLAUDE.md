@@ -111,3 +111,6 @@ For more information, read the Bun API docs in `node_modules/bun-types/docs/**.m
 - Formulate descriptive commit messages following the Conventional Commits specification (e.g., "feat(scope):", "fix(scope):", "refactor(scope):").
 - In the commit messages, always add a description.
 - Do not push to the remote repository unless explicitly asked.
+
+# Local (gitignored) instructions
+@.claude/CLAUDE.md
