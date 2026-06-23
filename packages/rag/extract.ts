@@ -6,7 +6,10 @@ import { genai } from "./gemini";
 //  - PDF     : hand the bytes to Gemini (multimodal) — handles scanned/complex
 //              PDFs without a parser dependency. ponytail: inline base64 is
 //              simplest; switch to the Files API if files get large (>~20MB).
-export async function extractText(bytes: Uint8Array, mimeType: string): Promise<string> {
+export async function extractText(
+	bytes: Uint8Array,
+	mimeType: string,
+): Promise<string> {
 	if (mimeType.startsWith("text/")) {
 		return new TextDecoder().decode(bytes);
 	}

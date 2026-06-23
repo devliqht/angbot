@@ -2,7 +2,8 @@
 // boundaries. Good enough for PDF/TXT context; swap for a real tokenizer only
 // if chunk-size precision ever matters.
 
-export const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
+export const estimateTokens = (text: string): number =>
+	Math.ceil(text.length / 4);
 
 export interface ChunkOptions {
 	chunkTokens: number;
@@ -21,7 +22,10 @@ export function chunkText(text: string, opts: ChunkOptions): string[] {
 		let end = Math.min(start + size, clean.length);
 		if (end < clean.length) {
 			// prefer to cut on whitespace in the back half of the window
-			const boundary = Math.max(clean.lastIndexOf(" ", end), clean.lastIndexOf("\n", end));
+			const boundary = Math.max(
+				clean.lastIndexOf(" ", end),
+				clean.lastIndexOf("\n", end),
+			);
 			if (boundary > start + size / 2) end = boundary;
 		}
 		const piece = clean.slice(start, end).trim();

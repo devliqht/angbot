@@ -22,7 +22,13 @@ export async function retrieve(
 	const qvec = await embedOne(query, "RETRIEVAL_QUERY");
 	const chunks = await prisma.chunk.findMany({
 		where: { agentId },
-		select: { id: true, documentId: true, position: true, content: true, embedding: true },
+		select: {
+			id: true,
+			documentId: true,
+			position: true,
+			content: true,
+			embedding: true,
+		},
 	});
 	return chunks
 		.map((c) => ({
@@ -51,7 +57,10 @@ export interface AgentContext {
 
 // Rung-1: if the agent's whole corpus fits the model window
 // (<= FULL_CONTEXT_TOKEN_THRESHOLD), inject all of it. Otherwise RAG top-k.
-export async function buildContext(agentId: string, query: string): Promise<AgentContext> {
+export async function buildContext(
+	agentId: string,
+	query: string,
+): Promise<AgentContext> {
 	const total = await agentContextTokens(agentId);
 	if (total === 0) return { mode: "none", text: "" };
 

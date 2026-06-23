@@ -22,7 +22,9 @@ export async function answer(
 	query: string,
 	history: ChatTurn[] = [],
 ): Promise<AnswerResult> {
-	const agent = await prisma.agent.findUniqueOrThrow({ where: { id: agentId } });
+	const agent = await prisma.agent.findUniqueOrThrow({
+		where: { id: agentId },
+	});
 	const ctx = await buildContext(agentId, query);
 
 	const systemInstruction = ctx.text

@@ -10,13 +10,18 @@ const num = (v: string | undefined, fallback: number): number => {
 export const GEMINI_API_KEY = process.env.GEMINI_API_KEY ?? "";
 
 // Models — override per environment. Defaults are the project standard.
-export const CHAT_MODEL = process.env.GEMINI_CHAT_MODEL ?? "gemini-flash-latest";
-export const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "gemini-embedding-2";
+export const CHAT_MODEL =
+	process.env.GEMINI_CHAT_MODEL ?? "gemini-flash-latest";
+export const EMBED_MODEL =
+	process.env.GEMINI_EMBED_MODEL ?? "gemini-embedding-2";
 export const EMBED_DIM = num(process.env.GEMINI_EMBED_DIM, 768);
 
 // Chunking / retrieval.
 export const CHUNK_TOKENS = num(process.env.RAG_CHUNK_TOKENS, 800);
-export const CHUNK_OVERLAP_TOKENS = num(process.env.RAG_CHUNK_OVERLAP_TOKENS, 120);
+export const CHUNK_OVERLAP_TOKENS = num(
+	process.env.RAG_CHUNK_OVERLAP_TOKENS,
+	120,
+);
 export const RETRIEVAL_TOP_K = num(process.env.RAG_TOP_K, 6);
 
 // Rung-1 threshold: when an agent's whole corpus token estimate is at or below

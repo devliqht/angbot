@@ -55,7 +55,10 @@ export async function ingestDocument(input: IngestInput) {
 	} catch (err) {
 		await prisma.document.update({
 			where: { id: doc.id },
-			data: { status: "FAILED", error: err instanceof Error ? err.message : String(err) },
+			data: {
+				status: "FAILED",
+				error: err instanceof Error ? err.message : String(err),
+			},
 		});
 		throw err;
 	}
