@@ -21,7 +21,7 @@ const bindings = await prisma.discordBinding.findMany({
 
 ## 🗄 Schema Models Reference
 
-The relational database schema is configured in [packages/database/prisma/schema.prisma](file:///Users/mattcabarrubias/Documents/GitHub/angbot/packages/database/prisma/schema.prisma) and consists of the following key models:
+The relational database schema is configured in [packages/database/prisma/schema.prisma](../packages/database/prisma/schema.prisma) and consists of the following key models:
 
 ### 1. User & Accounts (Authentication)
 *   **`User`**: Represets dashboard user accounts. Contains Auth.js fields (`name`, `email`, `image`, etc.) and `passwordHash` (hashed using `bcrypt` for credentials-based sign-in).

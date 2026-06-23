@@ -39,12 +39,12 @@ graph TD
 The monorepo contains the following workspace modules:
 
 *   **`apps/`**
-    *   **[dashboard](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/dashboard)**: Next.js 16 Web Dashboard for user account management, agent creation, document uploads, and analytics. Powered by Auth.js for authentication.
-    *   **[discord](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/discord)**: The Discord Bot client containing event listeners, command handlers, and system triggers.
+    *   **[dashboard](../apps/dashboard)**: Next.js 16 Web Dashboard for user account management, agent creation, document uploads, and analytics. Powered by Auth.js for authentication.
+    *   **[discord](../apps/discord)**: The Discord Bot client containing event listeners, command handlers, and system triggers.
 *   **`packages/`**
-    *   **[database](file:///Users/mattcabarrubias/Documents/GitHub/angbot/packages/database)**: A shared wrapper package around **Prisma** which initializes and exports the database client.
-    *   **[rag](file:///Users/mattcabarrubias/Documents/GitHub/angbot/packages/rag)**: An environment-driven RAG library wrapping **Google Gemini**. Handles text extraction, token estimation, chunking, embedding, vector search, and LLM content generation.
-    *   **[shared-types](file:///Users/mattcabarrubias/Documents/GitHub/angbot/packages/shared-types)**: A shared package exporting common TypeScript types and interfaces used across workspaces.
+    *   **[database](../packages/database)**: A shared wrapper package around **Prisma** which initializes and exports the database client.
+    *   **[rag](../packages/rag)**: An environment-driven RAG library wrapping **Google Gemini**. Handles text extraction, token estimation, chunking, embedding, vector search, and LLM content generation.
+    *   **[shared-types](../packages/shared-types)**: A shared package exporting common TypeScript types and interfaces used across workspaces.
 
 ---
 
@@ -52,10 +52,10 @@ The monorepo contains the following workspace modules:
 
 Please refer to the dedicated pages below for deeper API guides, code snippets, and integration walkthroughs:
 
-1.  **[Database & Schema Guide](file:///Users/mattcabarrubias/Documents/GitHub/angbot/docs/database.md)**: Details the Prisma schema models (`User`, `Agent`, `Document`, `Chunk`, `DiscordBinding`, `AgentCall`) and instructions on using the shared `@project/database` client.
-2.  **[RAG & Gemini Integration Guide](file:///Users/mattcabarrubias/Documents/GitHub/angbot/docs/rag.md)**: Explains the RAG ingestion, retrieval, context-building, and generation flows, along with env configurations.
-3.  **[Authentication & Security Guide](file:///Users/mattcabarrubias/Documents/GitHub/angbot/docs/auth.md)**: Outlines Google OAuth, email/credentials signup, password hashing, and dashboard API security.
-4.  **[Discord Bot Integration Manual](file:///Users/mattcabarrubias/Documents/GitHub/angbot/docs/discord-bot.md)**: A developer handbook specifically for building the Discord bot commands, linking channels/guilds, and tracking call telemetry.
+1.  **[Database & Schema Guide](./database.md)**: Details the Prisma schema models (`User`, `Agent`, `Document`, `Chunk`, `DiscordBinding`, `AgentCall`) and instructions on using the shared `@project/database` client.
+2.  **[RAG & Gemini Integration Guide](./rag.md)**: Explains the RAG ingestion, retrieval, context-building, and generation flows, along with env configurations.
+3.  **[Authentication & Security Guide](./auth.md)**: Outlines Google OAuth, email/credentials signup, password hashing, and dashboard API security.
+4.  **[Discord Bot Integration Manual](./discord-bot.md)**: A developer handbook specifically for building the Discord bot commands, linking channels/guilds, and tracking call telemetry.
 
 ---
 

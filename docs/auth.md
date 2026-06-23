@@ -7,7 +7,7 @@ The dashboard implements a dual-method authentication system powered by **Auth.j
 ## ⚡ Key Components
 
 ### 1. The Auth Adapter
-NextAuth config is placed in [apps/dashboard/auth.ts](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/dashboard/auth.ts). It uses `@auth/prisma-adapter` mapped to our shared database client (`@project/database`).
+NextAuth config is placed in [apps/dashboard/auth.ts](../apps/dashboard/auth.ts). It uses `@auth/prisma-adapter` mapped to our shared database client (`@project/database`).
 
 Google OAuth users are automatically registered and saved as `User` rows linked to their respective `Account` and `Session` credentials on first login.
 
@@ -19,7 +19,7 @@ Google({ allowDangerousEmailAccountLinking: true })
 This allows Google OAuth logins to link automatically with existing email-and-password credentials accounts if they share the exact same email address.
 
 ### 3. Password Hashing (Zero Dependency)
-Password security uses standard Node.js `crypto` with `scrypt` key derivation rather than external binaries like `bcrypt`. The helper methods are located in [apps/dashboard/lib/password.ts](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/dashboard/lib/password.ts).
+Password security uses standard Node.js `crypto` with `scrypt` key derivation rather than external binaries like `bcrypt`. The helper methods are located in [apps/dashboard/lib/password.ts](../apps/dashboard/lib/password.ts).
 
 Hashed passwords are stored in the `passwordHash` column of the `User` table using the format:
 ```
@@ -56,7 +56,7 @@ Use `verifyPassword` to match an inputted password against a stored hashed key:
 
 ## 🌐 Signup Endpoint (`/api/signup`)
 
-The credentials registration route is located at [apps/dashboard/app/api/signup/route.ts](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/dashboard/app/api/signup/route.ts).
+The credentials registration route is located at [apps/dashboard/app/api/signup/route.ts](../apps/dashboard/app/api/signup/route.ts).
 
 *   **Endpoint:** `POST /api/signup`
 *   **Body (JSON):**

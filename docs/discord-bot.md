@@ -1,6 +1,6 @@
 # Discord Bot Integration Manual
 
-This guide walks through how to connect the Discord bot application ([apps/discord](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/discord)) to the shared database (`@project/database`) and the shared RAG engine (`@project/rag`).
+This guide walks through how to connect the Discord bot application ([apps/discord](../apps/discord)) to the shared database (`@project/database`) and the shared RAG engine (`@project/rag`).
 
 ---
 
@@ -18,7 +18,7 @@ DISCORD_TOKEN="your_discord_bot_token"
 
 ## 🛠 Integrating `@project/database` & `@project/rag`
 
-To use the shared workspace modules, import them directly into your bot file (e.g., [apps/discord/index.ts](file:///Users/mattcabarrubias/Documents/GitHub/angbot/apps/discord/index.ts)):
+To use the shared workspace modules, import them directly into your bot file (e.g., [apps/discord/index.ts](../apps/discord/index.ts)):
 
 ```typescript
 import { prisma } from "@project/database";
@@ -142,3 +142,4 @@ It is **crucial** to log every invocation using the `AgentCall` model as shown i
 *   **Token Consumption:** Cumulative input/output tokens (important for API billing/quotas).
 *   **Average Latency:** Speed index of the database context retrieval + Gemini model calls.
 *   **Error Rate:** Tracks system errors or quota issues.
+```
