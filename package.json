@@ -1,27 +1,27 @@
 {
-  "name": "angbot",
-  "module": "index.ts",
-  "type": "module",
-  "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev:dashboard": "bun --filter dashboard dev",
-    "dev:bot": "bun --filter discord dev",
-    "db:migrate": "bun run --bun --cwd packages/database prisma migrate dev",
-    "db:studio": "bun run --bun --cwd packages/database prisma studio",
-    "lint": "biome lint .",
-    "format": "biome format --write .",
-    "check": "biome check --write ."
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.5.0",
-    "@types/bun": "latest",
-    "typescript": "^5"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  }
+	"name": "angbot",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev:dashboard": "bun --filter dashboard dev",
+		"dev:bot": "bun --filter discord dev",
+		"db:migrate": "bun run --bun --cwd packages/database prisma migrate dev",
+		"db:studio": "bun run --bun --cwd packages/database prisma studio",
+		"lint": "biome lint .",
+		"format": "biome format --write .",
+		"check": "biome check --write ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.0",
+		"@types/bun": "latest",
+		"typescript": "^5"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
 }

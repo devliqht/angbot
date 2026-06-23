@@ -1,20 +1,20 @@
 {
-  "name": "discord",
-  "version": "1.0.0",
-  "main": "index.ts",
-  "private": true,
-  "scripts": {
-    "dev": "bun index.ts",
-    "build": "tsc"
-  },
-  "dependencies": {
-    "@project/database": "*",
-    "discord.js": "^14.14.0",
-    "dotenv": "^16.4.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
-  }
+	"name": "discord",
+	"version": "1.0.0",
+	"main": "index.ts",
+	"private": true,
+	"scripts": {
+		"dev": "bun index.ts",
+		"build": "tsc"
+	},
+	"dependencies": {
+		"@project/database": "*",
+		"discord.js": "^14.14.0",
+		"dotenv": "^16.4.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"ts-node": "^10.9.0",
+		"typescript": "^5.0.0"
+	}
 }

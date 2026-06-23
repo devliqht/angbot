@@ -9,10 +9,11 @@
 		"ignoreUnknown": false,
 		"includes": [
 			"**",
-			"!!**/.next/**",
-			"!!**/node_modules/**",
-			"!!**/packages/database/generated/**",
-			"!!**/packages/database/prisma/migrations/**"
+			"!!**/.next",
+			"!!**/node_modules",
+			"!!**/packages/database/generated",
+			"!!**/packages/database/prisma/migrations",
+			"!!**/*.svg"
 		]
 	},
 	"formatter": {
