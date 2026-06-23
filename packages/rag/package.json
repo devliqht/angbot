@@ -1,0 +1,16 @@
+{
+	"name": "@project/rag",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"dependencies": {
+		"@google/genai": "^2.9.0",
+		"@project/database": "*"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	}
+}
