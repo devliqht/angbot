@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -10,4 +8,216 @@ generator client {
 
 datasource db {
   provider = "mysql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth (dashboard) — Auth.js / NextAuth v5 compatible schema.
+// Shapes match `@auth/prisma-adapter` so the dashboard can drop in Google
+// OAuth and/or email+password credentials with no schema rework.
+// `passwordHash` is the only non-standard field, for credentials signup/login.
+// ---------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String? // null for OAuth-only accounts
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts Account[]
+  sessions Session[]
+  agents   Agent[]
+  calls    AgentCall[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ---------------------------------------------------------------------------
+// Agents — user-created, configurable Gemini agents.
+// ---------------------------------------------------------------------------
+
+model Agent {
+  id           String   @id @default(cuid())
+  userId       String // creator / owner
+  name         String
+  description  String?  @db.Text
+  systemPrompt String   @db.LongText
+  model        String   @default("gemini-2.5-flash") // Gemini model id
+  temperature  Float    @default(1.0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documents Document[]
+  chunks    Chunk[]
+  bindings  DiscordBinding[]
+  calls     AgentCall[]
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// RAG — uploaded context (PDF / TXT) chunked + embedded with Gemini.
+// Binary files live in object storage (GCS); we keep the key + extracted
+// text. `Chunk.embedding` is a JSON float array (Gemini embedding vector).
+// ponytail: retrieval is app-side cosine over Chunk rows scoped by agentId,
+//   O(n) per query — fine to low-thousands of chunks/agent. Upgrade path:
+//   native MariaDB/MySQL VECTOR column + ANN index (VEC_DISTANCE) and swap
+//   the JSON column for `Unsupported("vector(...)")` + a raw-SQL top-k query.
+// ---------------------------------------------------------------------------
+
+enum DocumentStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+model Document {
+  id         String         @id @default(cuid())
+  agentId    String
+  filename   String
+  mimeType   String // application/pdf | text/plain
+  sizeBytes  Int
+  storageKey String // object-storage key (e.g. GCS) for the original file
+  status     DocumentStatus @default(PROCESSING)
+  error      String?        @db.Text // failure reason when status = FAILED
+  chunkCount Int            @default(0)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  agent  Agent   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  chunks Chunk[]
+
+  @@index([agentId])
+  @@index([status])
+}
+
+model Chunk {
+  id         String   @id @default(cuid())
+  documentId String
+  agentId    String // denormalized for fast retrieval scoping
+  position   Int // order within the source document (0-based)
+  content    String   @db.LongText
+  embedding  Json // float[] Gemini embedding (model below)
+  embedModel String   @default("gemini-embedding-001")
+  tokenCount Int?
+  createdAt  DateTime @default(now())
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  agent    Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, position])
+  @@index([agentId])
+}
+
+// ---------------------------------------------------------------------------
+// Discord — bind a guild (and optionally a channel) to an active agent.
+// channelId "" = guild-wide default; a non-empty channelId overrides it.
+// ponytail: empty-string sentinel instead of nullable so the unique index
+//   actually enforces one binding per (guild, channel) — NULLs are distinct
+//   in MySQL and would let duplicates through.
+// ---------------------------------------------------------------------------
+
+model DiscordBinding {
+  id        String   @id @default(cuid())
+  guildId   String // Discord guild (server) snowflake
+  channelId String   @default("") // "" = guild default, else channel snowflake
+  agentId   String
+  createdBy String? // discord user snowflake who set it
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([guildId, channelId])
+  @@index([agentId])
+}
+
+// ---------------------------------------------------------------------------
+// Logs — every call made to an agent: from where, when, who.
+// ---------------------------------------------------------------------------
+
+enum CallSource {
+  DASHBOARD
+  DISCORD
+  API
+}
+
+enum CallStatus {
+  SUCCESS
+  ERROR
+}
+
+model AgentCall {
+  id      String     @id @default(cuid())
+  agentId String
+  source  CallSource
+  status  CallStatus @default(SUCCESS)
+
+  // who — dashboard caller (FK) or external Discord user (snowflake + cached name)
+  userId          String?
+  discordUserId   String?
+  discordUsername String?
+
+  // where — Discord origin (null for dashboard/API calls)
+  discordGuildId   String?
+  discordChannelId String?
+
+  // payload + metrics
+  prompt         String? @db.LongText
+  response       String? @db.LongText
+  promptTokens   Int?
+  responseTokens Int?
+  latencyMs      Int?
+  errorMessage   String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  agent Agent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([agentId, createdAt])
+  @@index([discordUserId])
+  @@index([userId])
+  @@index([source])
 }
