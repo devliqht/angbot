@@ -2,7 +2,7 @@
 
 import { createContext, useState, ReactNode } from 'react'
 
-type PageType = 'dashboard' | 'agents';
+type PageType = 'Dashboard' | 'Agents';
 
 interface MainContextType{
 
@@ -15,7 +15,7 @@ export const MainContext = createContext<MainContextType | null>(null);
 
 export function MainProvider({ children }: { children: ReactNode }){
 
-    const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
+    const [currentPage, setCurrentPage] = useState<PageType>('Dashboard');
 
     return(
 

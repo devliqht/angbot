@@ -6,15 +6,20 @@ import { FaUserCircle } from 'react-icons/fa';
 import Dashboard from '../dashboard/Dashboard'
 import Agents from '../agents/Agents'
 
-function AccountButton(){
+function Header({ currPage }: { currPage: string }){
 
 	return(
-		<div className="flex items-center gap-3 h-full">
+		<div className="flex items-center justify-between w-full">
 			<div>
-				Current Server Name
+				<h1>{currPage}</h1>
 			</div>
-			<div>
-				<FaUserCircle className="w-10 h-10 text-white"/>
+			<div className="flex items-center gap-3 h-full">
+				<div>
+					Current Server Name
+				</div>
+				<div>
+					<FaUserCircle className="w-10 h-10 text-white"/>
+				</div>
 			</div>
 		</div>
 	)
@@ -34,15 +39,15 @@ export default function Main_Page(){
 	const { currentPage, setCurrentPage } = context;
 
 	return (
-		<div className="h-screen flex items-center justify-center">
+		<div className="h-screen flex items-center justify-center overflow-hidden">
 			<SidePanel/>
-			<div className="h-screen flex-1">
-				<div className="flex items-center justify-end h-[7%] p-2">
-					<AccountButton/>
+			<div className="h-screen flex-1 flex flex-col">
+				<div className="flex items-center w-full h-[7%] min-h-[60px] px-6 flex-shrink-0 border-b border-gray-800">
+					<Header currPage={currentPage} />
 				</div>
-				<div className="h-full">
-					{currentPage === 'dashboard' && <Dashboard />}
-					{currentPage === 'agents' && <Agents />}
+				<div className="flex-1 overflow-y-auto p-6">
+					{currentPage === 'Dashboard' && <Dashboard />}
+					{currentPage === 'Agents' && <Agents />}
 				</div>
 			</div>
 		</div>

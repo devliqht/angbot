@@ -22,14 +22,14 @@ export default function SidePanel(){
                 <HomepageButton/>
             </div>
             <div className="flex flex-col gap-3 h-full">                
-                <button className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === 'dashboard' ? 'bg-[#202127]' : 'bg-[#1b1b1f]'}`}
-                        onClick={() => setCurrentPage('dashboard')}>
+                <button className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === 'Dashboard' ? 'bg-[#202127]' : 'bg-[#1b1b1f]'}`}
+                        onClick={() => setCurrentPage('Dashboard')}>
                     <h2 className="text-[1.4rem]">
                         Dashboard
                     </h2>
                 </button>
-                <button className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === 'agents' ? 'bg-[#202127]' : 'bg-[#1b1b1f]'}`}
-                        onClick={() => setCurrentPage('agents')}>
+                <button className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === 'Agents' ? 'bg-[#202127]' : 'bg-[#1b1b1f]'}`}
+                        onClick={() => setCurrentPage('Agents')}>
                     <h2 className="text-[1.4rem]">
                         Agents
                     </h2>
