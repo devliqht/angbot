@@ -1,0 +1,28 @@
+"use client";
+
+import { createContext, useState, ReactNode } from 'react'
+
+type PageType = 'dashboard' | 'agents';
+
+interface MainContextType{
+
+    currentPage: PageType;
+    setCurrentPage: (page: PageType) => void;
+
+}
+
+export const MainContext = createContext<MainContextType | null>(null);
+
+export function MainProvider({ children }: { children: ReactNode }){
+
+    const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
+
+    return(
+
+        <MainContext.Provider value={{ currentPage, setCurrentPage }}>
+            {children}
+        </MainContext.Provider>
+
+    );
+
+}

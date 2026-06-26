@@ -1,11 +1,11 @@
 import Image from "next/image";
 import HomepageButton from "../components/homepage_button";
 import discord_logo from "../images/discord_logo.png";
-import logo from "../images/logo.png";
+import logo from "../images/logo_final.png";
 
 function Navbar() {
 	return (
-		<div className="flex items-center w-full justify-between p-5">
+		<div className="flex items-center w-full justify-between p-5 select-none">
 			<div className="flex">
 				<HomepageButton />
 			</div>
@@ -26,7 +26,7 @@ function Navbar() {
 
 function Main() {
 	return (
-		<div className="flex items-center">
+		<div className="flex items-center select-none">
 			<div>
 				<Image src={logo} width={320} height={320} alt="Angbot Logo" />
 			</div>
