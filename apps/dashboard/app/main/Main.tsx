@@ -2,20 +2,48 @@
 import SidePanel from '../components/side_panel'
 import { useContext, useState } from 'react'
 import { MainContext, MainProvider } from '../context/Main_Context';
+import { ServerContext, ServerProvider } from '../context/Server_Context';
 import { FaUserCircle } from 'react-icons/fa';
 import Dashboard from '../dashboard/Dashboard'
 import Agents from '../agents/Agents'
 
+//Dummy Data
+import { DUMMY_DATA } from '../DUMMY_VALUES/servers_and_agents'
+
 function Header({ currPage }: { currPage: string }){
+
+	const serverContext = useContext(ServerContext);
+
+	if(!serverContext){
+
+		throw new Error("Error in finding the right server");
+
+	}
+
+	const { currentServerId, setCurrentServerId } = serverContext;
 
 	return(
 		<div className="flex items-center justify-between w-full">
 			<div>
-				<h1>{currPage}</h1>
+				<h1 className="text-4xl font-bold">{currPage}</h1>
 			</div>
 			<div className="flex items-center gap-3 h-full">
 				<div>
-					Current Server Name
+					<select 
+						value={currentServerId}
+						onChange={(e) => setCurrentServerId(e.target.value)}
+						className="text-white rounded-lg px-3 py-3 outline-none cursor-pointer font-bold text-right"
+					>
+						{DUMMY_DATA.map((server) => (
+
+							<option key={server.id} value={server.id}>
+
+								{server.name}
+
+							</option>
+
+						))}
+					</select>
 				</div>
 				<div>
 					<FaUserCircle className="w-10 h-10 text-white"/>
