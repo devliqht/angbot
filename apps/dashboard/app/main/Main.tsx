@@ -1,11 +1,12 @@
 "use client"
 import SidePanel from '../components/side_panel'
-import { useContext, useState } from 'react'
-import { MainContext, MainProvider } from '../context/Main_Context';
-import { ServerContext, ServerProvider } from '../context/Server_Context';
+import { useContext } from 'react'
+import { MainContext } from '../context/Main_Context';
+import { ServerContext } from '../context/Server_Context';
 import { FaUserCircle } from 'react-icons/fa';
 import Dashboard from '../dashboard/Dashboard'
 import Agents from '../agents/Agents'
+import Profile from '../profile/Profile'
 
 //Dummy Data
 import { DUMMY_DATA } from '../DUMMY_VALUES/servers_and_agents'
@@ -13,14 +14,13 @@ import { DUMMY_DATA } from '../DUMMY_VALUES/servers_and_agents'
 function Header({ currPage }: { currPage: string }){
 
 	const serverContext = useContext(ServerContext);
+	const mainContext = useContext(MainContext);
 
-	if(!serverContext){
-
-		throw new Error("Error in finding the right server");
-
-	}
+	if(!serverContext) throw new Error("Error in finding the right server");
+	if(!mainContext) throw new Error("Error in main page");
 
 	const { currentServerId, setCurrentServerId } = serverContext;
+	const { setCurrentPage } = mainContext;
 
 	return(
 		<div className="flex items-center justify-between w-full">
@@ -28,41 +28,37 @@ function Header({ currPage }: { currPage: string }){
 				<h1 className="text-4xl font-bold">{currPage}</h1>
 			</div>
 			<div className="flex items-center gap-3 h-full">
+				{currPage !== 'Profile' && (
+					<div>
+						<select 
+							value={currentServerId}
+							onChange={(e) => setCurrentServerId(e.target.value)}
+							className="text-white rounded-lg px-3 py-3 outline-none cursor-pointer font-bold text-right"
+						>
+							{DUMMY_DATA.map((server) => (
+								<option key={server.id} value={server.id}>
+									{server.name}
+								</option>
+							))}
+						</select>
+					</div>
+				)}
 				<div>
-					<select 
-						value={currentServerId}
-						onChange={(e) => setCurrentServerId(e.target.value)}
-						className="text-white rounded-lg px-3 py-3 outline-none cursor-pointer font-bold text-right"
-					>
-						{DUMMY_DATA.map((server) => (
-
-							<option key={server.id} value={server.id}>
-
-								{server.name}
-
-							</option>
-
-						))}
-					</select>
-				</div>
-				<div>
-					<FaUserCircle className="w-10 h-10 text-white"/>
+					<FaUserCircle 
+						className="w-10 h-10 text-white cursor-pointer hover:text-gray-300 transition-colors duration-150"
+						onClick={() => setCurrentPage(currPage === 'Profile' ? 'Dashboard' : 'Profile')}
+					/>
 				</div>
 			</div>
 		</div>
 	)
-
 }
 
 export default function Main_Page(){
 
 	const context = useContext(MainContext);
 
-	if(!context){
-
-		throw new Error("Error in main page");
-
-	}
+	if(!context) throw new Error("Error in main page");
 
 	const { currentPage, setCurrentPage } = context;
 
@@ -76,9 +72,9 @@ export default function Main_Page(){
 				<div className="flex-1 overflow-y-auto p-6">
 					{currentPage === 'Dashboard' && <Dashboard />}
 					{currentPage === 'Agents' && <Agents />}
+					{currentPage === 'Profile' && <Profile />}
 				</div>
 			</div>
 		</div>
 	);
 }
-
