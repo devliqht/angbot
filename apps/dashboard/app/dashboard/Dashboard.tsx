@@ -102,7 +102,7 @@ export default function Dashboard() {
                 {
                     currentServer.agents.map((agent) => {
 
-                        return <AgentCard agent={agent} />
+                        return <AgentCard key={agent.id} agent={agent} />
 
                     })
                 }
