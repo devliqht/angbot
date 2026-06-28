@@ -18,6 +18,7 @@ function FileIcon() {
 			fill="none"
 			className="shrink-0"
 		>
+			<title>File Icon</title>
 			<path
 				d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
 				stroke="#6b7280"
@@ -38,23 +39,25 @@ function FileIcon() {
 
 export default function Agents() {
 	const serverContext = useContext(ServerContext);
+	const currentServerId = serverContext?.currentServerId;
+
+	const currentServer = DUMMY_DATA.find(
+		(server) => server?.id === currentServerId,
+	);
+
+	const [selectedAgent, setSelectedAgent] = useState(
+		currentServer?.agents[0]?.name ?? "",
+	);
+	const [prompt, setPrompt] = useState("");
+	const files = DUMMY_FILES;
 
 	if (!serverContext) {
 		return <h1>Error in finding server context: try reloading the website</h1>;
 	}
-	const { currentServerId } = serverContext;
 
-	const currentServer = DUMMY_DATA.find(
-		(server) => server.id === currentServerId,
-	);
 	if (!currentServer) {
 		return <div>Server not found.</div>;
 	}
-	const [selectedAgent, setSelectedAgent] = useState(
-		currentServer.agents[0]?.name ?? "",
-	);
-	const [prompt, setPrompt] = useState("");
-	const files = DUMMY_FILES;
 
 	const agent = currentServer.agents.find((a) => a.name === selectedAgent);
 
@@ -118,7 +121,7 @@ export default function Agents() {
 					}}
 				>
 					<div className="flex flex-1 flex-col gap-2 p-4">
-						{files.map((file, index) => (
+						{files.map((file) => (
 							<div
 								key={file}
 								className="flex items-center gap-3 rounded-md px-3 py-2"
