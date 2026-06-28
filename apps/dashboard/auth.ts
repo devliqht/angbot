@@ -3,6 +3,7 @@ import { prisma } from "@project/database";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import Discord from "next-auth/providers/discord";
 import { verifyPassword } from "@/lib/password";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -15,6 +16,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 		// allowDangerousEmailAccountLinking lets a Google login attach to an
 		// existing same-email credentials account (same person, one account).
 		Google({ allowDangerousEmailAccountLinking: true }),
+		Discord({ allowDangerousEmailAccountLinking: true }),
 		Credentials({
 			name: "Email and password",
 			credentials: {
