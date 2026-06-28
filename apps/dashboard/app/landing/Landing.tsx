@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import HomepageButton from "../components/homepage_button";
 import discord_logo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
@@ -13,12 +14,12 @@ function Navbar() {
 				<button type="button" className="cursor-pointer">
 					<p>Add Bot</p>
 				</button>
-				<button
-					type="button"
-					className="bg-[#1752F0] p-1 px-3 rounded-full cursor-pointer"
+				<Link
+					href="/login_page"
+					className="bg-[#1752F0] p-1 px-3 rounded-full cursor-pointer text-white text-sm font-semibold flex items-center justify-center"
 				>
-					<p>Login</p>
-				</button>
+					Login
+				</Link>
 			</div>
 		</div>
 	);
