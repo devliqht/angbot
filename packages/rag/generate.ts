@@ -21,15 +21,18 @@ export async function answer(
 	agentId: string,
 	query: string,
 	history: ChatTurn[] = [],
+	systemPromptOverride?: string,
 ): Promise<AnswerResult> {
 	const agent = await prisma.agent.findUniqueOrThrow({
 		where: { id: agentId },
 	});
 	const ctx = await buildContext(agentId, query);
 
+	const baseSystemPrompt = systemPromptOverride ?? agent.systemPrompt;
+
 	const systemInstruction = ctx.text
-		? `${agent.systemPrompt}\n\n# Reference context\nUse the context below to answer when relevant. If it does not contain the answer, say so.\n\n${ctx.text}`
-		: agent.systemPrompt;
+		? `${baseSystemPrompt}\n\n# Reference context\nUse the context below to answer when relevant. If it does not contain the answer, say so.\n\n${ctx.text}`
+		: baseSystemPrompt;
 
 	const contents = [
 		...history.map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
