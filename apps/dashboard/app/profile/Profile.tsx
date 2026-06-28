@@ -1,5 +1,4 @@
 "use client";
-
 import { useContext } from "react";
 import { MainContext } from "../context/Main_Context";
 
