@@ -86,7 +86,11 @@ test("409 on duplicate email", async () => {
 });
 
 test("blank name becomes null", async () => {
-	const res = await call({ email: "c@d.com", password: "longenough", name: "   " });
+	const res = await call({
+		email: "c@d.com",
+		password: "longenough",
+		name: "   ",
+	});
 	const json = (await res.json()) as { user: Row };
 	expect(json.user.name).toBeNull();
 });
