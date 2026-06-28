@@ -48,7 +48,7 @@ Imports, parses, chunks, embeds, and stores a document.
 
 ### 2. `answer`
 Generates a response from the agent using context-aware RAG querying.
-*   **Signature:** `export async function answer(agentId: string, query: string, history: ChatTurn[] = []): Promise<AnswerResult>`
+*   **Signature:** `export async function answer(agentId: string, query: string, history: ChatTurn[] = [], systemPromptOverride?: string): Promise<AnswerResult>`
 *   **Interfaces:**
     ```typescript
     export interface ChatTurn {
@@ -148,3 +148,32 @@ async function onMessageCreate(message: DiscordMessage) {
 	await message.reply(result.text);
 }
 ```
+
+---
+
+### Example: Chat completions route (`/api/completions`)
+
+The chatbot backend pipeline features a completions endpoint located at [apps/dashboard/app/api/completions/route.ts](../apps/dashboard/app/api/completions/route.ts) which acts as the main user request handler.
+
+*   **Endpoint:** `POST /api/completions`
+*   **Access Control:** Requires a logged-in dashboard session (authenticated via `auth()`).
+*   **Request Body (JSON):**
+    ```json
+    {
+      "agentId": "agent-cuid-here",
+      "message": "User query prompt message",
+      "history": [
+        { "role": "user", "text": "hello" },
+        { "role": "model", "text": "Hi, how can I help you?" }
+      ],
+      "systemPrompt": "Optional override system instruction prompt"
+    }
+    ```
+*   **Successful Response (200 OK):**
+    ```json
+    {
+      "text": "Generated response string from Gemini",
+      "contextMode": "rag"
+    }
+    ```
+*   **Audit Logging:** Logs every execution attempt as an `AgentCall` row (calculating latency, logging tokens, capturing errors, and linking to the logged-in User CUID).
