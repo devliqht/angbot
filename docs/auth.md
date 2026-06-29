@@ -112,3 +112,40 @@ When a user clicks "Login with Discord" on the dashboard login page:
 2. The user is redirected to Discord's authorization screen.
 3. Upon approval, Discord returns an authorization code to `/api/auth/callback/discord`.
 4. Auth.js exchanges it for access/refresh tokens and automatically logs the user in, mapping or creating a database user record.
+
+---
+
+## 👤 User Profile Update Endpoint (`/api/user/profile`)
+
+Exposes backend functionality to update the authenticated user's name, password, and avatar image.
+
+*   **Endpoint:** `POST /api/user/profile`
+*   **Headers:** `Content-Type: multipart/form-data`
+*   **Access Control:** Requires a logged-in dashboard session (authenticated via `auth()`).
+*   **Request Form Fields (Multipart):**
+    *   `name` (String, optional): The new name of the user. Cannot be empty if provided.
+    *   `currentPassword` (String, optional): Required if the user already has a password set and wants to change it.
+    *   `newPassword` (String, optional): The new password. Must be at least 8 characters long.
+    *   `avatar` (File, optional): An image file (JPEG, PNG, WEBP, or GIF) with a maximum size of 5MB.
+*   **File Storage & Cleanup:**
+    *   Saves uploaded avatar files to `apps/dashboard/public/uploads/avatars/` using high-performance `Bun.write`.
+    *   Automatically deletes the user's old avatar file if it was previously stored locally.
+*   **Successful Response (200 OK):**
+    *   Returns the updated user profile:
+        ```json
+        {
+          "message": "Profile updated successfully",
+          "user": {
+            "id": "cuid-string",
+            "name": "Updated User Name",
+            "email": "user@example.com",
+            "image": "/uploads/avatars/cuid-timestamp.png",
+            "createdAt": "2026-06-29T12:00:00.000Z",
+            "updatedAt": "2026-06-29T12:10:00.000Z"
+          }
+        }
+        ```
+*   **Error Responses:**
+    *   `401 Unauthorized`: No active session found.
+    *   `400 Bad Request`: Validation failure (name empty, password too short, incorrect current password, or invalid image type/size).
+    *   `500 Internal Server Error`: Disk write failure or database query error.
