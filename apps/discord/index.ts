@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { prisma } from "@project/database";
 import { answer } from "@project/rag";
 
@@ -10,9 +10,26 @@ const client = new Client({
 	],
 });
 
+const commands = [
+	new SlashCommandBuilder()
+		.setName("hermes")
+		.setDescription("Replies with Hermes is Hermesing!"),
+].map((command) => command.toJSON());
+
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isChatInputCommand()) return;
+
+	if (interaction.commandName === "hermes") {
+		await interaction.reply("Hermes is Hermesing!");
+	}
+});
+
 client.on("messageCreate", async (message) => {
 	// 1. Ignore bot messages
 	if (message.author.bot) return;
+
+	// 2. Only respond if the bot is directly mentioned
+	if (!client.user || !message.mentions.has(client.user)) return;
 
 	try {
 		// 2. Fetch the linked agent for this Guild or Channel.
@@ -84,8 +101,21 @@ client.on("messageCreate", async (message) => {
 	}
 });
 
-client.on("ready", () => {
-  console.error(`Logged in as ${client.user?.tag}`);
+client.on("ready", async () => {
+	console.error(`Logged in as ${client.user?.tag}`);
+
+	if (client.user) {
+		const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
+		try {
+			console.log("Started refreshing application (/) commands.");
+			await rest.put(Routes.applicationCommands(client.user.id), {
+				body: commands,
+			});
+			console.log("Successfully reloaded application (/) commands.");
+		} catch (error) {
+			console.error("Failed to register slash commands:", error);
+		}
+	}
 });
 
 
