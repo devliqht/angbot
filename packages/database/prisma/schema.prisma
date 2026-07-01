@@ -83,7 +83,7 @@ model Agent {
   description  String?  @db.Text
   systemPrompt String   @db.LongText
   model        String   @default("gemini-flash-latest") // Gemini model id
-  temperature  Float    @default(1.0)
+  temperature  Float?   @default(1.0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
