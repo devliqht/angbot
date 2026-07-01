@@ -68,6 +68,23 @@ Generates a response from the agent using context-aware RAG querying.
     *   If context was found, appends it as reference data inside the system instruction prompt.
     *   Submits the conversational message history and user query to the Gemini generative model.
     *   Returns the response text, the context mode applied, and token metadata.
+*   **Usage Example (calling with history):**
+    ```typescript
+    import { answer, type ChatTurn } from "@project/rag";
+
+    const agentId = "agent-cuid-here";
+    const query = "What is my favorite color?";
+
+    // You can pass simple text turns or native parts structures:
+    const history: ChatTurn[] = [
+        { role: "user", text: "Hello! My favorite color is green." },
+        { role: "model", text: "Got it! I will remember that your favorite color is green." },
+        { role: "user", parts: [{ text: "I also like blue." }] }
+    ];
+
+    const result = await answer(agentId, query, history);
+    console.log(result.text); // "Your favorite color is green, and you also like blue."
+    ```
 
 ---
 
