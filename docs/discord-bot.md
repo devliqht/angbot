@@ -142,4 +142,36 @@ It is **crucial** to log every invocation using the `AgentCall` model as shown i
 *   **Token Consumption:** Cumulative input/output tokens (important for API billing/quotas).
 *   **Average Latency:** Speed index of the database context retrieval + Gemini model calls.
 *   **Error Rate:** Tracks system errors or quota issues.
+
+---
+
+## 🤖 Slash Commands Configuration (`/agent`)
+
+The Discord bot implements a `/agent` slash command to allow server administrators to configure or switch the active agent for the current channel.
+
+### 1. Security & Permissions
+The command is restricted using Discord's native `Administrator` check during registration:
+```typescript
+new SlashCommandBuilder()
+	.setName("agent")
+	.setDescription("Configure and switch the active AI agent for this channel.")
+	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 ```
+Additionally, the handler validates `interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)` before processing the input.
+
+### 2. User Account Discovery
+When an administrator runs `/agent`:
+1. The bot retrieves their Discord snowflake ID (`interaction.user.id`).
+2. It queries the `Account` table where `provider = "discord"` to find the linked dashboard `userId`.
+3. If not found, it responds with an **ephemeral** instructions message prompting them to log in to the dashboard via Discord.
+4. If found, it fetches the list of agents created by that user.
+
+### 3. Ephemeral Selection Menu
+The bot returns a `StringSelectMenuBuilder` containing the list of available agents.
+* **Visibility:** The menu is sent as an `ephemeral` response, meaning only the calling administrator can see or interact with it.
+* **Selection:** Once a selection is made, the bot captures the interaction in the `interaction.isStringSelectMenu()` handler, updates the `DiscordBinding` table via `prisma.discordBinding.upsert()`, and replies with an ephemeral success confirmation.
+
+---
+
+## 🚀 Commands Deployment
+The bot registers its slash commands dynamically on the `ready` event. When logging in, it refreshes all application commands using Discord's `REST` module. Ensure that your `DISCORD_TOKEN` environment variable is fully configured.
