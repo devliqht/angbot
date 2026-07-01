@@ -225,6 +225,56 @@ client.on("messageCreate", async (message) => {
 		// Mark typing state in Discord
 		await message.channel.sendTyping();
 
+		// Compile context about the author and mentioned users
+		let userContextBlock = "# Active Discord User Details:\n";
+
+		// Add Author Details
+		try {
+			const authorMember = await message.guild?.members.fetch(
+				message.author.id,
+			);
+			userContextBlock += `- Message Author: @${message.author.username}\n`;
+			userContextBlock += `  * Global Name: ${message.author.globalName ?? "None"}\n`;
+			userContextBlock += `  * Server Nickname: ${authorMember?.displayName ?? message.author.username}\n`;
+			if (authorMember) {
+				const roles = authorMember.roles.cache
+					.filter((r) => r.name !== "@everyone")
+					.map((r) => r.name);
+				userContextBlock += `  * Server Roles: ${roles.length > 0 ? roles.join(", ") : "None"}\n`;
+			}
+		} catch (err) {
+			console.error("Failed to fetch author guild details:", err);
+		}
+
+		// Add Mentioned Users Details
+		if (message.mentions.users.size > 0) {
+			for (const [userId, user] of message.mentions.users) {
+				// Avoid duplicating the author
+				if (userId === message.author.id) continue;
+				// Avoid duplicating the bot itself
+				if (userId === client.user?.id) continue;
+
+				try {
+					const member = await message.guild?.members.fetch(userId);
+					userContextBlock += `- Mentioned User: @${user.username}\n`;
+					userContextBlock += `  * Global Name: ${user.globalName ?? "None"}\n`;
+					userContextBlock += `  * Server Nickname: ${member?.displayName ?? user.username}\n`;
+					if (member) {
+						const roles = member.roles.cache
+							.filter((r) => r.name !== "@everyone")
+							.map((r) => r.name);
+						userContextBlock += `  * Server Roles: ${roles.length > 0 ? roles.join(", ") : "None"}\n`;
+					}
+				} catch (err) {
+					console.error(
+						`Failed to fetch guild details for mentioned user ${userId}:`,
+						err,
+					);
+				}
+			}
+		}
+
+		const enrichedQuery = `${userContextBlock}\n\n# User Query:\n${message.cleanContent}`;
 		const startTime = Date.now();
 		let responseText = "";
 		let _contextMode: "full" | "rag" | "none" = "none";
@@ -235,7 +285,7 @@ client.on("messageCreate", async (message) => {
 
 		try {
 			// Query the shared RAG engine
-			const result = await answer(binding.agentId, message.content);
+			const result = await answer(binding.agentId, enrichedQuery);
 			responseText = result.text;
 			_contextMode = result.contextMode;
 			promptTokens = result.promptTokens ?? 0;
@@ -263,7 +313,7 @@ client.on("messageCreate", async (message) => {
 				discordUsername: message.author.username,
 				discordGuildId: message.guildId,
 				discordChannelId: message.channelId,
-				prompt: message.content,
+				prompt: message.cleanContent,
 				response: responseText,
 				promptTokens,
 				responseTokens,

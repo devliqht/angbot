@@ -1,5 +1,10 @@
 import { prisma } from "@project/database";
-import { type AnswerResult, answer, type ChatTurn } from "@project/rag";
+import {
+	type AnswerResult,
+	answer,
+	type ChatPart,
+	type ChatTurn,
+} from "@project/rag";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
@@ -46,26 +51,99 @@ export async function POST(req: Request) {
 			);
 		}
 		for (const turn of history) {
-			if (
-				!turn ||
-				typeof turn !== "object" ||
-				!("role" in turn) ||
-				!("text" in turn) ||
-				(turn.role !== "user" && turn.role !== "model") ||
-				typeof turn.text !== "string"
-			) {
+			if (!turn || typeof turn !== "object" || !("role" in turn)) {
+				return NextResponse.json(
+					{ error: "each history item must be an object with a role" },
+					{ status: 400 },
+				);
+			}
+
+			if (typeof turn.role !== "string" || !turn.role.trim()) {
+				return NextResponse.json(
+					{ error: "role must be a non-empty string" },
+					{ status: 400 },
+				);
+			}
+
+			if ("parts" in turn) {
+				if (!Array.isArray(turn.parts)) {
+					return NextResponse.json(
+						{ error: "parts must be an array" },
+						{ status: 400 },
+					);
+				}
+				for (const part of turn.parts) {
+					if (!part || typeof part !== "object") {
+						return NextResponse.json(
+							{ error: "each part in parts must be an object" },
+							{ status: 400 },
+						);
+					}
+					if ("text" in part) {
+						if (typeof part.text !== "string") {
+							return NextResponse.json(
+								{ error: "part text must be a string" },
+								{ status: 400 },
+							);
+						}
+					} else if ("inlineData" in part) {
+						const inline = part.inlineData;
+						if (
+							!inline ||
+							typeof inline !== "object" ||
+							!("mimeType" in inline) ||
+							!("data" in inline) ||
+							typeof inline.mimeType !== "string" ||
+							typeof inline.data !== "string"
+						) {
+							return NextResponse.json(
+								{
+									error:
+										"part inlineData must contain mimeType and data strings",
+								},
+								{ status: 400 },
+							);
+						}
+					} else {
+						return NextResponse.json(
+							{
+								error:
+									"each part in parts must contain either a text string or inlineData object",
+							},
+							{ status: 400 },
+						);
+					}
+				}
+				formattedHistory.push({
+					role: turn.role,
+					parts: turn.parts as ChatPart[],
+				});
+			} else if ("text" in turn) {
+				if (typeof turn.text !== "string") {
+					return NextResponse.json(
+						{ error: "text must be a string" },
+						{ status: 400 },
+					);
+				}
+				if (turn.role !== "user" && turn.role !== "model") {
+					return NextResponse.json(
+						{ error: "role must be 'user' or 'model' for standard chat turns" },
+						{ status: 400 },
+					);
+				}
+				formattedHistory.push({
+					role: turn.role,
+					text: turn.text,
+				});
+			} else {
 				return NextResponse.json(
 					{
 						error:
-							"each history item must have a valid role ('user' | 'model') and text",
+							"each history item must have either a text property or a parts array",
 					},
 					{ status: 400 },
 				);
 			}
-			formattedHistory.push({
-				role: turn.role,
-				text: turn.text,
-			});
 		}
 	}
 

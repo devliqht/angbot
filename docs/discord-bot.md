@@ -145,6 +145,31 @@ It is **crucial** to log every invocation using the `AgentCall` model as shown i
 
 ---
 
+## 👤 User Metadata Context Injection
+
+To allow the AI model to know "who is talking" and "who is mentioned" (including server-specific nicknames and roles), the bot extracts details for the message author and any mentioned users prior to calling the generative model:
+
+1. **Information Extraction**:
+   For the author and each mentioned user, the bot fetches their server member profile via the Discord API (`guild.members.fetch(userId)`), compiling:
+   * **Global Username** (e.g. `@matt`)
+   * **Server Nickname** (e.g. `Matt (Developer)`)
+   * **Server Roles** (e.g. `Admin`, `Developer`)
+
+2. **Metadata Context Block**:
+   The bot structures these details in a Markdown context block:
+   ```markdown
+   # Active Discord User Details:
+   - Message Author: @matt
+     * Global Name: Matt
+     * Server Nickname: Matt (Developer)
+     * Server Roles: Admin, Developer
+   ```
+
+3. **Query Enrichment**:
+   This block is prepended directly to the user's prompt (using `message.cleanContent` to translate raw mention tags into readable text) and sent to the RAG package, ensuring the AI model has full awareness of user identities.
+
+---
+
 ## 🤖 Slash Commands Configuration (`/agent`)
 
 The Discord bot implements a `/agent` slash command to allow server administrators to configure or switch the active agent for the current channel.
