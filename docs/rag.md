@@ -62,6 +62,11 @@ Generates a response from the agent using context-aware RAG querying.
         responseTokens?: number; // Generated response tokens count
     }
     ```
+
+    > [!NOTE]
+    > **What is the `parts` array?**
+    > In Google Gemini, messages are structured as multimodal payload blocks. A single message can contain text, image binaries, files, or function calls. The `parts` array stores these distinct segments sequentially. Even if a message contains only plain text, the SDK expects it to be formatted as a text segment inside the `parts` list: `parts: [{ text: "your message" }]`.
+
 *   **Behavior:**
     *   Loads the agent configuration (system prompt, temperature, target model).
     *   Retrieves context using the **Rung-1 strategy** (see below).
