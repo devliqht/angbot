@@ -1,5 +1,5 @@
 import { prisma } from "@project/database";
-import { answer } from "@project/rag";
+import { answer, type ChatTurn } from "@project/rag";
 import {
 	ActionRowBuilder,
 	Client,
@@ -18,6 +18,18 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 	],
 });
+
+// Short-term conversation memory, per channel. In-memory only (resets on
+// restart) — a sliding window of the last MEMORY_LIMIT turns, alternating
+// "user" (the Discord author) and "model" (the bot's own reply).
+const MEMORY_LIMIT = 10;
+const channelMemory = new Map<string, ChatTurn[]>();
+
+function pushMemory(channelId: string, turn: ChatTurn): void {
+	const history = channelMemory.get(channelId) ?? [];
+	history.push(turn);
+	channelMemory.set(channelId, history.slice(-MEMORY_LIMIT));
+}
 
 const commands = [
 	new SlashCommandBuilder()
@@ -105,7 +117,7 @@ client.on("interactionCreate", async (interaction) => {
 				.setPlaceholder("Select an AI agent to bind to this channel")
 				.addOptions(
 					agents.map((agent) => ({
-						label: agent.name,
+						label: agent.name || "Unnamed agent",
 						description: agent.description?.slice(0, 100) || undefined,
 						value: agent.id,
 					})),
@@ -283,13 +295,21 @@ client.on("messageCreate", async (message) => {
 		let status: "SUCCESS" | "ERROR" = "SUCCESS";
 		let errorMessage: string | null = null;
 
+		const history = channelMemory.get(message.channelId) ?? [];
+
 		try {
 			// Query the shared RAG engine
-			const result = await answer(binding.agentId, enrichedQuery);
+			const result = await answer(binding.agentId, enrichedQuery, history);
 			responseText = result.text;
 			_contextMode = result.contextMode;
 			promptTokens = result.promptTokens ?? 0;
 			responseTokens = result.responseTokens ?? 0;
+
+			pushMemory(message.channelId, {
+				role: "user",
+				text: `${message.author.username}: ${message.cleanContent}`,
+			});
+			pushMemory(message.channelId, { role: "model", text: responseText });
 		} catch (err) {
 			status = "ERROR";
 			errorMessage = err instanceof Error ? err.message : String(err);

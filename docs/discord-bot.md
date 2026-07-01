@@ -200,3 +200,84 @@ The bot returns a `StringSelectMenuBuilder` containing the list of available age
 
 ## 🚀 Commands Deployment
 The bot registers its slash commands dynamically on the `ready` event. When logging in, it refreshes all application commands using Discord's `REST` module. Ensure that your `DISCORD_TOKEN` environment variable is fully configured.
+
+---
+
+## 🧠 Short-Term Conversation Memory *(Added by m4tcha)*
+
+> The sections below were added by **m4tcha** and are not part of the original manual above. Nothing above this line was changed.
+
+To let the bot hold an actual back-and-forth conversation instead of treating every mention as a one-off question, `apps/discord/index.ts` keeps a small in-memory conversation history per channel and feeds it to `answer()`'s existing `history` parameter.
+
+1. **Storage**: a module-level `Map<string, ChatTurn[]>` keyed by `channelId`, capped at the last **10** turns (`MEMORY_LIMIT`). This is in-process memory only — it is *not* persisted to the database, so it resets whenever the bot restarts.
+
+   ```typescript
+   const MEMORY_LIMIT = 10;
+   const channelMemory = new Map<string, ChatTurn[]>();
+
+   function pushMemory(channelId: string, turn: ChatTurn): void {
+     const history = channelMemory.get(channelId) ?? [];
+     history.push(turn);
+     channelMemory.set(channelId, history.slice(-MEMORY_LIMIT));
+   }
+   ```
+
+2. **Differentiating bot vs. user turns**: each stored turn is tagged with `role: "user"` or `role: "model"`, matching the shared `ChatTurn` type in `@project/rag`. User turns are additionally prefixed with the author's username (`"{username}: {message}"`), so if multiple people talk to the bot in the same channel, the model can tell them apart too — not just bot-vs-human.
+
+3. **Wiring into the message handler**: the stored history is read before calling `answer()`, and both the user's message and the bot's reply are appended to it only after a **successful** response (a failed/error reply is not remembered, so it can't poison future context):
+
+   ```typescript
+   const history = channelMemory.get(message.channelId) ?? [];
+
+   const result = await answer(binding.agentId, enrichedQuery, history);
+
+   pushMemory(message.channelId, {
+     role: "user",
+     text: `${message.author.username}: ${message.cleanContent}`,
+   });
+   pushMemory(message.channelId, { role: "model", text: responseText });
+   ```
+
+**Trade-off**: since this is per-process memory, it does not survive a bot restart/redeploy and is not shared across bot instances if the bot is ever scaled horizontally. A persistent version would require a database table and was intentionally left out of scope for now.
+
+---
+
+## 🛡️ Defensive Fix: Empty Agent Names in `/agent` *(Added by m4tcha)*
+
+Discord's `StringSelectMenuBuilder` requires every option's `label` to be a non-empty string. If an `Agent` row has an empty-string `name` (possible today since agent creation doesn't enforce a non-empty name), the `/agent` command's select-menu construction (`addOptions(...)`) throws immediately, taking down that interaction with an error like:
+
+```
+error: Invalid string length
+constraint: "s.string().lengthGreaterThanOrEqual()"
+given: ""
+expected: "expected.length >= 1"
+```
+
+The fix falls back to a placeholder label instead of passing an empty string through to Discord:
+
+```typescript
+agents.map((agent) => ({
+  label: agent.name || "Unnamed agent",
+  description: agent.description?.slice(0, 100) || undefined,
+  value: agent.id,
+}))
+```
+
+This only prevents the crash — it does not fix the underlying data. Agents with an empty `name` will still show up as **"Unnamed agent"** in the picker until they're given a real name.
+
+---
+
+## 📝 Notes on the Original Documentation *(Added by m4tcha)*
+
+> This section only records observations — nothing above it was edited or removed.
+
+While comparing this manual against the current `apps/discord/index.ts`, a few places in the original "Reference Implementation Code" sample (under **💬 Message Handler Implementation**) no longer match the real, working implementation. Flagging these here rather than editing the sample above, since it's not clear if the gap is intentional simplification for readability or genuine drift:
+
+1. **No mention-gating.** The sample replies to *every* message in a bound channel once `message.author.bot` is false. The actual bot only replies when directly @mentioned (`message.mentions.has(client.user)`) — this is a real, deliberate behavior (see the `feat(bot): added mention-only handling` commit), not shown in the sample.
+2. **`message.content` vs. `message.cleanContent`.** The sample passes raw `message.content` to `answer()` and logs it as `prompt` in `AgentCall`. The real code uses `message.cleanContent`, which turns raw mention tags like `<@123456789>` into readable `@username` text before it ever reaches the model or the database.
+3. **`ready` vs. `clientReady`.** The sample (and the "🚀 Commands Deployment" section above) refers to the `ready` event. The real bot listens on `clientReady` instead — `ready` is deprecated in discord.js v14 in favor of `clientReady` (removed entirely in v15), and using the old name prints a deprecation warning on every startup.
+4. **Missing error logging.** The sample's `catch` block sets a user-facing error message but never logs the underlying error anywhere. The real code adds `console.error("RAG answer() failed:", errorMessage)` — without it, a failing RAG call (e.g. a Gemini `503` or a bad DB connection) is invisible in the bot's own logs.
+5. **Commands and features not reflected in the sample.** The sample only shows the base message-handling flow — it doesn't include `/ping`, `/agent`, the user-metadata `enrichedQuery` injection (despite that being documented separately below it), or the conversation memory documented above. Worth noting only because a reader skimming just the code sample would get an incomplete picture of what the bot actually does today.
+6. **Env var example.** The `DATABASE_URL` example at the top (`mysql://root:root@localhost:3306/angbot`) doesn't match either real credential set currently used in this project's `.env` files. Likely just a generic placeholder, but worth double-checking against your actual local database name/user before copy-pasting it.
+
+None of the above were changed in this pass — flagging them here so whoever maintains this doc next can decide whether to update the original sample or leave it as a simplified teaching example.
