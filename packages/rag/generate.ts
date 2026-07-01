@@ -2,10 +2,9 @@ import { prisma } from "@project/database";
 import { genai } from "./gemini";
 import { buildContext } from "./retrieve";
 
-export interface ChatTurn {
-	role: "user" | "model";
-	text: string;
-}
+export type ChatTurn =
+	| { role: "user" | "model"; text: string }
+	| { role: string; parts: Array<{ text: string }> };
 
 export interface AnswerResult {
 	text: string;
@@ -35,7 +34,12 @@ export async function answer(
 		: baseSystemPrompt;
 
 	const contents = [
-		...history.map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
+		...history.map((h) => {
+			if ("parts" in h && Array.isArray(h.parts)) {
+				return { role: h.role, parts: h.parts };
+			}
+			return { role: h.role, parts: [{ text: (h as { text: string }).text }] };
+		}),
 		{ role: "user", parts: [{ text: query }] },
 	];
 

@@ -163,3 +163,20 @@ test("500 when completion fails & records error log", async () => {
 	expect(agentCalls[0].status).toBe("ERROR");
 	expect(agentCalls[0].errorMessage).toBe("GenAI rate limit");
 });
+
+test("200 on successful completion with history parts format", async () => {
+	const res = await call({
+		agentId: "agent_123",
+		message: "hello agent",
+		history: [{ role: "user", parts: [{ text: "prev prompt with parts" }] }],
+	});
+
+	expect(res.status).toBe(200);
+	const data = await res.json();
+	expect(data).toEqual({ text: "mocked response", contextMode: "none" });
+
+	expect(answerCallArgs.length).toBe(1);
+	expect(answerCallArgs[0].history).toEqual([
+		{ role: "user", parts: [{ text: "prev prompt with parts" }] },
+	]);
+});
