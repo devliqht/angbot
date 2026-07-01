@@ -51,10 +51,9 @@ Generates a response from the agent using context-aware RAG querying.
 *   **Signature:** `export async function answer(agentId: string, query: string, history: ChatTurn[] = [], systemPromptOverride?: string): Promise<AnswerResult>`
 *   **Interfaces:**
     ```typescript
-    export interface ChatTurn {
-        role: "user" | "model";
-        text: string;
-    }
+    export type ChatTurn =
+        | { role: "user" | "model"; text: string }
+        | { role: string; parts: Array<{ text: string }> };
 
     export interface AnswerResult {
         text: string; // The generated response
@@ -163,8 +162,11 @@ The chatbot backend pipeline features a completions endpoint located at [apps/da
       "agentId": "agent-cuid-here",
       "message": "User query prompt message",
       "history": [
+        // Supports simple text format:
         { "role": "user", "text": "hello" },
-        { "role": "model", "text": "Hi, how can I help you?" }
+        { "role": "model", "text": "Hi, how can I help you?" },
+        // Also supports Gemini-native parts format:
+        { "role": "user", "parts": [{ "text": "tell me a joke" }] }
       ],
       "systemPrompt": "Optional override system instruction prompt"
     }
