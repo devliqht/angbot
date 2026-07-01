@@ -1,6 +1,12 @@
-import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { prisma } from "@project/database";
 import { answer } from "@project/rag";
+import {
+	Client,
+	GatewayIntentBits,
+	REST,
+	Routes,
+	SlashCommandBuilder,
+} from "discord.js";
 
 const client = new Client({
 	intents: [
@@ -44,17 +50,17 @@ client.on("messageCreate", async (message) => {
 		});
 
 		// If no agent is bound to this channel or guild, do nothing
-    if (!binding) {
-      console.error(`No Agent Found!`);
-      return;
-    }
+		if (!binding) {
+			console.error(`No Agent Found!`);
+			return;
+		}
 
 		// 3. Mark typing state in Discord
 		await message.channel.sendTyping();
 
 		const startTime = Date.now();
 		let responseText = "";
-		let contextMode: "full" | "rag" | "none" = "none";
+		let _contextMode: "full" | "rag" | "none" = "none";
 		let promptTokens = 0;
 		let responseTokens = 0;
 		let status: "SUCCESS" | "ERROR" = "SUCCESS";
@@ -64,13 +70,14 @@ client.on("messageCreate", async (message) => {
 			// 4. Query the shared RAG engine
 			const result = await answer(binding.agentId, message.content);
 			responseText = result.text;
-			contextMode = result.contextMode;
+			_contextMode = result.contextMode;
 			promptTokens = result.promptTokens ?? 0;
 			responseTokens = result.responseTokens ?? 0;
 		} catch (err) {
 			status = "ERROR";
 			errorMessage = err instanceof Error ? err.message : String(err);
-			responseText = "Sorry, I encountered an error while processing your request.";
+			responseText =
+				"Sorry, I encountered an error while processing your request.";
 		}
 
 		const latencyMs = Date.now() - startTime;
@@ -105,7 +112,12 @@ client.on("ready", async () => {
 	console.error(`Logged in as ${client.user?.tag}`);
 
 	if (client.user) {
-		const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
+		const token = process.env.DISCORD_TOKEN;
+		if (!token) {
+			console.error("DISCORD_TOKEN environment variable is missing.");
+			return;
+		}
+		const rest = new REST({ version: "10" }).setToken(token);
 		try {
 			console.log("Started refreshing application (/) commands.");
 			await rest.put(Routes.applicationCommands(client.user.id), {
@@ -117,6 +129,5 @@ client.on("ready", async () => {
 		}
 	}
 });
-
 
 client.login(process.env.DISCORD_TOKEN);
