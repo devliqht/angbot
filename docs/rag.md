@@ -51,9 +51,13 @@ Generates a response from the agent using context-aware RAG querying.
 *   **Signature:** `export async function answer(agentId: string, query: string, history: ChatTurn[] = [], systemPromptOverride?: string): Promise<AnswerResult>`
 *   **Interfaces:**
     ```typescript
+    export type ChatPart =
+        | { text: string }
+        | { inlineData: { mimeType: string; data: string } };
+
     export type ChatTurn =
         | { role: "user" | "model"; text: string }
-        | { role: string; parts: Array<{ text: string }> };
+        | { role: string; parts: Array<ChatPart> };
 
     export interface AnswerResult {
         text: string; // The generated response
@@ -65,7 +69,7 @@ Generates a response from the agent using context-aware RAG querying.
 
     > [!NOTE]
     > **What is the `parts` array?**
-    > In Google Gemini, messages are structured as multimodal payload blocks. A single message can contain text, image binaries, files, or function calls. The `parts` array stores these distinct segments sequentially. Even if a message contains only plain text, the SDK expects it to be formatted as a text segment inside the `parts` list: `parts: [{ text: "your message" }]`.
+    > In Google Gemini, messages are structured as multimodal payload blocks. A single message can contain text, image binaries, files, or function calls. The `parts` array stores these distinct segments sequentially. Even if a message contains only plain text, the SDK expects it to be formatted as a text segment inside the `parts` list: `parts: [{ text: "your message" }]`. For images, it accepts an `inlineData` object: `parts: [{ inlineData: { mimeType: "image/png", data: "base64..." } }]`.
 
 *   **Behavior:**
     *   Loads the agent configuration (system prompt, temperature, target model).
@@ -80,11 +84,18 @@ Generates a response from the agent using context-aware RAG querying.
     const agentId = "agent-cuid-here";
     const query = "What is my favorite color?";
 
-    // You can pass simple text turns or native parts structures:
+    // You can pass simple text turns, native parts structures, or inline image data:
     const history: ChatTurn[] = [
         { role: "user", text: "Hello! My favorite color is green." },
         { role: "model", text: "Got it! I will remember that your favorite color is green." },
-        { role: "user", parts: [{ text: "I also like blue." }] }
+        { role: "user", parts: [{ text: "I also like blue." }] },
+        {
+            role: "user",
+            parts: [
+                { text: "Can you describe this diagram?" },
+                { inlineData: { mimeType: "image/png", data: "iVBORw0KGgoAAAANS..." } }
+            ]
+        }
     ];
 
     const result = await answer(agentId, query, history);
