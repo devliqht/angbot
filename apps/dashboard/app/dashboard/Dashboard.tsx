@@ -1,10 +1,9 @@
 "use client";
 
 import { useContext, useState } from "react";
-import { ServerContext } from "../context/Server_Context";
-import { type Agent, DUMMY_DATA } from "../DUMMY_VALUES/servers_and_agents";
+import { type ContextAgent, ServerContext } from "../context/Server_Context";
 
-function AgentCard({ agent }: { agent: Agent }) {
+function AgentCard({ agent }: { agent: ContextAgent }) {
 	const [expanded, setExpanded] = useState(false);
 
 	return (
@@ -30,10 +29,6 @@ function AgentCard({ agent }: { agent: Agent }) {
 							{(agent.tokensUsed / 1000).toFixed(1)}k
 						</h3>
 					</div>
-					<div className="w-full">
-						<h1 className="text-white/50 text-s">RAG Efficiency</h1>
-						<h3 className="text-2xl">{agent.ragEfficiency}%</h3>
-					</div>
 				</div>
 			</div>
 		</div>
@@ -47,13 +42,14 @@ export default function Dashboard() {
 		return <h1>Error in finding server context: try reloading the website</h1>;
 	}
 
-	const { currentServerId } = serverContext;
-	const currentServer = DUMMY_DATA.find(
-		(server) => server.id === currentServerId,
-	);
+	const { loading, currentServer } = serverContext;
+
+	if (loading) {
+		return <div>Loading...</div>;
+	}
 
 	if (!currentServer) {
-		return <div>Server not found.</div>;
+		return <div>No Discord server is set up with an agent yet.</div>;
 	}
 
 	let tokenCount = 0;
@@ -107,9 +103,9 @@ export default function Dashboard() {
 				</div>
 			</div>
 			<div className="flex flex-col gap-3">
-				{currentServer.agents.map((agent) => {
-					return <AgentCard key={agent.id} agent={agent} />;
-				})}
+				{currentServer.agents.map((agent) => (
+					<AgentCard key={agent.id} agent={agent} />
+				))}
 			</div>
 		</div>
 	);

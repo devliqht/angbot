@@ -5,8 +5,6 @@ import Agents from "../agents/Agents";
 import SidePanel from "../components/side_panel";
 import { MainContext } from "../context/Main_Context";
 import { ServerContext } from "../context/Server_Context";
-//Dummy Data
-import { DUMMY_DATA } from "../DUMMY_VALUES/servers_and_agents";
 import Dashboard from "../dashboard/Dashboard";
 import Profile from "../profile/Profile";
 
@@ -17,7 +15,7 @@ function Header({ currPage }: { currPage: string }) {
 	if (!serverContext) throw new Error("Error in finding the right server");
 	if (!mainContext) throw new Error("Error in main page");
 
-	const { currentServerId, setCurrentServerId } = serverContext;
+	const { servers, currentServerId, setCurrentServerId } = serverContext;
 	const { setCurrentPage } = mainContext;
 
 	return (
@@ -31,13 +29,18 @@ function Header({ currPage }: { currPage: string }) {
 						<select
 							value={currentServerId}
 							onChange={(e) => setCurrentServerId(e.target.value)}
+							disabled={servers.length === 0}
 							className="text-white rounded-lg px-3 py-3 outline-none cursor-pointer font-bold text-right"
 						>
-							{DUMMY_DATA.map((server) => (
-								<option key={server.id} value={server.id}>
-									{server.name}
-								</option>
-							))}
+							{servers.length === 0 ? (
+								<option value="">No servers configured</option>
+							) : (
+								servers.map((server) => (
+									<option key={server.id} value={server.id}>
+										{server.name}
+									</option>
+								))
+							)}
 						</select>
 					</div>
 				)}

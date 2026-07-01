@@ -1,6 +1,12 @@
-import { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder } from "discord.js";
 import { prisma } from "@project/database";
 import { answer } from "@project/rag";
+import {
+	Client,
+	GatewayIntentBits,
+	REST,
+	Routes,
+	SlashCommandBuilder,
+} from "discord.js";
 
 const client = new Client({
 	intents: [
@@ -14,6 +20,9 @@ const commands = [
 	new SlashCommandBuilder()
 		.setName("hermes")
 		.setDescription("Replies with Hermes is Hermesing!"),
+	new SlashCommandBuilder()
+		.setName("ping")
+		.setDescription("Check the bot's connection latency."),
 ].map((command) => command.toJSON());
 
 client.on("interactionCreate", async (interaction) => {
@@ -22,17 +31,28 @@ client.on("interactionCreate", async (interaction) => {
 	if (interaction.commandName === "hermes") {
 		await interaction.reply("Hermes is Hermesing!");
 	}
+
+	if (interaction.commandName === "ping") {
+		const sent = await interaction.reply({
+			content: "Pinging...",
+			fetchReply: true,
+		});
+		const roundtrip = sent.createdTimestamp - interaction.createdTimestamp;
+		await interaction.editReply(
+			`Pong! Roundtrip: **${roundtrip}ms** | Websocket: **${Math.round(client.ws.ping)}ms**`,
+		);
+	}
 });
 
 client.on("messageCreate", async (message) => {
-	// 1. Ignore bot messages
+	// Ignore bot messages
 	if (message.author.bot) return;
 
-	// 2. Only respond if the bot is directly mentioned
+	// Only respond if the bot is directly mentioned
 	if (!client.user || !message.mentions.has(client.user)) return;
 
 	try {
-		// 2. Fetch the linked agent for this Guild or Channel.
+		// Fetch the linked agent for this Guild or Channel.
 		// A channel-specific binding overrides the guild-wide default.
 		const binding = await prisma.discordBinding.findFirst({
 			where: {
@@ -44,12 +64,12 @@ client.on("messageCreate", async (message) => {
 		});
 
 		// If no agent is bound to this channel or guild, do nothing
-    if (!binding) {
-      console.error(`No Agent Found!`);
-      return;
-    }
+		if (!binding) {
+			console.error(`No Agent Found!`);
+			return;
+		}
 
-		// 3. Mark typing state in Discord
+		// Mark typing state in Discord
 		await message.channel.sendTyping();
 
 		const startTime = Date.now();
@@ -61,7 +81,7 @@ client.on("messageCreate", async (message) => {
 		let errorMessage: string | null = null;
 
 		try {
-			// 4. Query the shared RAG engine
+			// Query the shared RAG engine
 			const result = await answer(binding.agentId, message.content);
 			responseText = result.text;
 			contextMode = result.contextMode;
@@ -70,15 +90,17 @@ client.on("messageCreate", async (message) => {
 		} catch (err) {
 			status = "ERROR";
 			errorMessage = err instanceof Error ? err.message : String(err);
-			responseText = "Sorry, I encountered an error while processing your request.";
+			console.error("RAG answer() failed:", errorMessage);
+			responseText =
+				"Sorry, I encountered an error while processing your request.";
 		}
 
 		const latencyMs = Date.now() - startTime;
 
-		// 5. Send the reply back to the Discord channel
+		// Send the reply back to the Discord channel
 		await message.reply(responseText);
 
-		// 6. Log the call telemetry inside AgentCall table
+		// Log the call telemetry inside AgentCall table
 		await prisma.agentCall.create({
 			data: {
 				agentId: binding.agentId,
@@ -101,11 +123,13 @@ client.on("messageCreate", async (message) => {
 	}
 });
 
-client.on("ready", async () => {
+client.on("clientReady", async () => {
 	console.error(`Logged in as ${client.user?.tag}`);
 
 	if (client.user) {
-		const rest = new REST({ version: "10" }).setToken(process.env.DISCORD_TOKEN!);
+		const rest = new REST({ version: "10" }).setToken(
+			process.env.DISCORD_TOKEN!,
+		);
 		try {
 			console.log("Started refreshing application (/) commands.");
 			await rest.put(Routes.applicationCommands(client.user.id), {
@@ -117,6 +141,5 @@ client.on("ready", async () => {
 		}
 	}
 });
-
 
 client.login(process.env.DISCORD_TOKEN);
