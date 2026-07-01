@@ -158,13 +158,13 @@ The dashboard exposes endpoints to manage (list, create, update, delete) agents 
     *   `name` (String, Required): Must be non-empty.
     *   `systemPrompt` (String, Required): Must be non-empty.
     *   `model` (String, Optional): Defaults to `"gemini-flash-latest"`.
-    *   `temperature` (Number, Optional): Must be a float between `0.0` and `2.0`. Defaults to `1.0`.
+    *   `temperature` (Number, Optional): Must be a float between `0.0` and `2.0`, or `null`. Defaults to `null` (uses model's default temperature).
 *   **Response (201 Created):** Returns the created `agent` object.
 
 ### 3. Modify an Agent
 *   **Endpoint:** `PATCH /api/agents/[id]`
 *   **Access Control:** Authenticated session required. Authenticated user must own the agent (returns `403 Forbidden` if owned by someone else).
-*   **Request Body (JSON):** Supports updating `name`, `description`, `systemPrompt`, `model`, and/or `temperature`.
+*   **Request Body (JSON):** Supports updating `name`, `description`, `systemPrompt`, `model`, and/or `temperature` (supports setting to a number between `0.0` and `2.0`, or `null`).
 *   **Response (200 OK):** Returns the updated `agent` object.
 
 ### 4. Delete an Agent
