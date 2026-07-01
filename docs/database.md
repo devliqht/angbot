@@ -113,3 +113,65 @@ const docs = await prisma.document.findMany({
 	}
 });
 ```
+
+---
+
+## 🤖 Agent Management API Endpoints
+
+The dashboard exposes endpoints to manage (list, create, update, delete) agents at [apps/dashboard/app/api/agents](../apps/dashboard/app/api/agents).
+
+### 1. List User's Agents
+*   **Endpoint:** `GET /api/agents`
+*   **Access Control:** Authenticated session required.
+*   **Response (200 OK):**
+    ```json
+    {
+      "agents": [
+        {
+          "id": "agent-cuid-here",
+          "userId": "user-cuid-here",
+          "name": "My AI Agent",
+          "description": "Short description",
+          "systemPrompt": "System instructions...",
+          "model": "gemini-flash-latest",
+          "temperature": 1.0,
+          "createdAt": "2026-07-01T12:00:00.000Z",
+          "updatedAt": "2026-07-01T12:00:00.000Z"
+        }
+      ]
+    }
+    ```
+
+### 2. Create an Agent
+*   **Endpoint:** `POST /api/agents`
+*   **Access Control:** Authenticated session required.
+*   **Request Body (JSON):**
+    ```json
+    {
+      "name": "Hermes Bot",
+      "description": "Assistant for science",
+      "systemPrompt": "You are Hermes, assist with science homework.",
+      "model": "gemini-flash-latest",
+      "temperature": 0.7
+    }
+    ```
+    *   `name` (String, Required): Must be non-empty.
+    *   `systemPrompt` (String, Required): Must be non-empty.
+    *   `model` (String, Optional): Defaults to `"gemini-flash-latest"`.
+    *   `temperature` (Number, Optional): Must be a float between `0.0` and `2.0`, or `null`. Defaults to `null` (uses model's default temperature).
+*   **Response (201 Created):** Returns the created `agent` object.
+
+### 3. Modify an Agent
+*   **Endpoint:** `PATCH /api/agents/[id]`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent (returns `403 Forbidden` if owned by someone else).
+*   **Request Body (JSON):** Supports updating `name`, `description`, `systemPrompt`, `model`, and/or `temperature` (supports setting to a number between `0.0` and `2.0`, or `null`).
+*   **Response (200 OK):** Returns the updated `agent` object.
+
+### 4. Delete an Agent
+*   **Endpoint:** `DELETE /api/agents/[id]`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Response (200 OK):**
+    ```json
+    { "message": "Agent deleted successfully" }
+    ```
+    *   *Note:* Deleting an agent cascade-deletes all associated `DiscordBinding`, `Document`, `Chunk`, and `AgentCall` records.
