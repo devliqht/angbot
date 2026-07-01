@@ -141,6 +141,17 @@ test("PATCH updates fields successfully", async () => {
 	});
 });
 
+test("PATCH supports setting temperature to null", async () => {
+	const res = await callPatch("agent_123", {
+		temperature: null,
+	});
+
+	expect(res.status).toBe(200);
+	expect(prismaUpdates).toEqual({
+		temperature: null,
+	});
+});
+
 test("DELETE 401 when unauthorized", async () => {
 	sessionResult = null;
 	const res = await callDelete("agent_123");

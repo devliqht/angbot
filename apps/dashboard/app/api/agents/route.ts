@@ -72,8 +72,8 @@ export async function POST(req: Request) {
 		parsedModel = model.trim();
 	}
 
-	let parsedTemp = 1.0;
-	if (temperature !== undefined) {
+	let parsedTemp: number | null = null;
+	if (temperature !== undefined && temperature !== null) {
 		if (
 			typeof temperature !== "number" ||
 			temperature < 0.0 ||

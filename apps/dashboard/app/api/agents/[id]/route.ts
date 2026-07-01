@@ -58,7 +58,7 @@ export async function PATCH(
 		description?: string | null;
 		systemPrompt?: string;
 		model?: string;
-		temperature?: number;
+		temperature?: number | null;
 	} = {};
 
 	if (name !== undefined) {
@@ -92,17 +92,20 @@ export async function PATCH(
 	}
 
 	if (temperature !== undefined) {
-		if (
-			typeof temperature !== "number" ||
-			temperature < 0.0 ||
-			temperature > 2.0
+		if (temperature === null) {
+			dataToUpdate.temperature = null;
+		} else if (
+			typeof temperature === "number" &&
+			temperature >= 0.0 &&
+			temperature <= 2.0
 		) {
+			dataToUpdate.temperature = temperature;
+		} else {
 			return NextResponse.json(
-				{ error: "temperature must be a number between 0.0 and 2.0" },
+				{ error: "temperature must be a number between 0.0 and 2.0, or null" },
 				{ status: 400 },
 			);
 		}
-		dataToUpdate.temperature = temperature;
 	}
 
 	if (description !== undefined) {

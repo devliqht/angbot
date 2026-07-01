@@ -42,7 +42,7 @@ export async function answer(
 	const res = await genai().models.generateContent({
 		model: agent.model,
 		contents,
-		config: { systemInstruction, temperature: agent.temperature },
+		config: { systemInstruction, temperature: agent.temperature ?? undefined },
 	});
 
 	return {
