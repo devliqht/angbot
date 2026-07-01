@@ -1,5 +1,10 @@
 import { prisma } from "@project/database";
-import { type AnswerResult, answer, type ChatTurn } from "@project/rag";
+import {
+	type AnswerResult,
+	answer,
+	type ChatPart,
+	type ChatTurn,
+} from "@project/rag";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
@@ -68,21 +73,50 @@ export async function POST(req: Request) {
 					);
 				}
 				for (const part of turn.parts) {
-					if (
-						!part ||
-						typeof part !== "object" ||
-						!("text" in part) ||
-						typeof part.text !== "string"
-					) {
+					if (!part || typeof part !== "object") {
 						return NextResponse.json(
-							{ error: "each part in parts must contain a text string" },
+							{ error: "each part in parts must be an object" },
+							{ status: 400 },
+						);
+					}
+					if ("text" in part) {
+						if (typeof part.text !== "string") {
+							return NextResponse.json(
+								{ error: "part text must be a string" },
+								{ status: 400 },
+							);
+						}
+					} else if ("inlineData" in part) {
+						const inline = part.inlineData;
+						if (
+							!inline ||
+							typeof inline !== "object" ||
+							!("mimeType" in inline) ||
+							!("data" in inline) ||
+							typeof inline.mimeType !== "string" ||
+							typeof inline.data !== "string"
+						) {
+							return NextResponse.json(
+								{
+									error:
+										"part inlineData must contain mimeType and data strings",
+								},
+								{ status: 400 },
+							);
+						}
+					} else {
+						return NextResponse.json(
+							{
+								error:
+									"each part in parts must contain either a text string or inlineData object",
+							},
 							{ status: 400 },
 						);
 					}
 				}
 				formattedHistory.push({
 					role: turn.role,
-					parts: turn.parts,
+					parts: turn.parts as ChatPart[],
 				});
 			} else if ("text" in turn) {
 				if (typeof turn.text !== "string") {

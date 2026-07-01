@@ -180,3 +180,34 @@ test("200 on successful completion with history parts format", async () => {
 		{ role: "user", parts: [{ text: "prev prompt with parts" }] },
 	]);
 });
+
+test("200 on successful completion with history multimodal parts format", async () => {
+	const res = await call({
+		agentId: "agent_123",
+		message: "hello agent",
+		history: [
+			{
+				role: "user",
+				parts: [
+					{ text: "describe this image" },
+					{ inlineData: { mimeType: "image/png", data: "base64-data" } },
+				],
+			},
+		],
+	});
+
+	expect(res.status).toBe(200);
+	const data = await res.json();
+	expect(data).toEqual({ text: "mocked response", contextMode: "none" });
+
+	expect(answerCallArgs.length).toBe(1);
+	expect(answerCallArgs[0].history).toEqual([
+		{
+			role: "user",
+			parts: [
+				{ text: "describe this image" },
+				{ inlineData: { mimeType: "image/png", data: "base64-data" } },
+			],
+		},
+	]);
+});

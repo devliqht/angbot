@@ -2,9 +2,13 @@ import { prisma } from "@project/database";
 import { genai } from "./gemini";
 import { buildContext } from "./retrieve";
 
+export type ChatPart =
+	| { text: string }
+	| { inlineData: { mimeType: string; data: string } };
+
 export type ChatTurn =
 	| { role: "user" | "model"; text: string }
-	| { role: string; parts: Array<{ text: string }> };
+	| { role: string; parts: Array<ChatPart> };
 
 export interface AnswerResult {
 	text: string;
