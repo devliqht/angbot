@@ -1,6 +1,7 @@
 "use client";
 
 import { useContext, useState } from "react";
+import CreateFirstAgent from "../components/create_first_agent";
 import { type ContextAgent, ServerContext } from "../context/Server_Context";
 
 function AgentCard({ agent }: { agent: ContextAgent }) {
@@ -49,7 +50,11 @@ export default function Dashboard() {
 	}
 
 	if (!currentServer) {
-		return <div>No Discord server is set up with an agent yet.</div>;
+		return (
+			<div className="py-12">
+				<CreateFirstAgent />
+			</div>
+		);
 	}
 
 	let tokenCount = 0;

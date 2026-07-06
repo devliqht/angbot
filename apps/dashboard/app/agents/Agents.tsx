@@ -1,5 +1,6 @@
 "use client";
 import { useContext, useState } from "react";
+import CreateFirstAgent from "../components/create_first_agent";
 import { ServerContext } from "../context/Server_Context";
 
 const DUMMY_FILES = [
@@ -55,7 +56,11 @@ export default function Agents() {
 	}
 
 	if (!currentServer) {
-		return <div>No Discord server is set up with an agent yet.</div>;
+		return (
+			<div className="py-12">
+				<CreateFirstAgent />
+			</div>
+		);
 	}
 
 	const agent =
