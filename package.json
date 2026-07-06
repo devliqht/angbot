@@ -9,7 +9,7 @@
 	],
 	"scripts": {
 		"dev:dashboard": "bun --filter dashboard dev",
-		"dev:bot": "bun --filter discord dev",
+		"dev:bot": "bun run --cwd apps/discord dev",
 		"db:migrate": "bun run --bun --cwd packages/database prisma migrate dev",
 		"db:studio": "bun run --bun --cwd packages/database prisma studio",
 		"lint": "biome lint .",
