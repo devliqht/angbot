@@ -116,7 +116,7 @@ test("POST 201 creates agent successfully", async () => {
 	const data = await res.json();
 	expect(data.agent.id).toBe("new_agent_123");
 	expect(prismaCreatedAgent).toEqual({
-		userId: "user_123",
+		user: { connect: { id: "user_123" } },
 		name: "Agent Zero",
 		description: "A cool agent",
 		systemPrompt: "Do everything",

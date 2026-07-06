@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 	try {
 		const agent = await prisma.agent.create({
 			data: {
-				userId: session.user.id,
+				user: { connect: { id: session.user.id } },
 				name: name.trim(),
 				description: parsedDescription,
 				systemPrompt: systemPrompt.trim(),
