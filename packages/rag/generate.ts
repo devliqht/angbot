@@ -8,7 +8,8 @@ export type ChatPart =
 	| { text: string }
 	| { inlineData: { mimeType: string; data: string } }
 	| { functionCall: unknown }
-	| { functionResponse: unknown };
+	| { functionResponse: unknown }
+	| Record<string, unknown>;
 
 export type ChatTurn =
 	| { role: "user" | "model"; text: string }
@@ -105,8 +106,15 @@ export async function answer(
 				config,
 			});
 
+			const modelParts = res.candidates?.[0]?.content?.parts;
 			const functionCalls = res.functionCalls;
-			if (!functionCalls || functionCalls.length === 0) {
+
+			if (
+				!modelParts ||
+				modelParts.length === 0 ||
+				!functionCalls ||
+				functionCalls.length === 0
+			) {
 				return {
 					text: res.text ?? "",
 					contextMode: ctx.mode,
@@ -115,12 +123,9 @@ export async function answer(
 				};
 			}
 
-			const modelParts: ChatPart[] = [];
 			const functionResponseParts: ChatPart[] = [];
 
 			for (const call of functionCalls) {
-				modelParts.push({ functionCall: call });
-
 				let toolResultText = "";
 				if (mcpClient) {
 					try {
@@ -146,7 +151,7 @@ export async function answer(
 				});
 			}
 
-			contents.push({ role: "model", parts: modelParts });
+			contents.push({ role: "model", parts: modelParts as ChatPart[] });
 			contents.push({ role: "user", parts: functionResponseParts });
 			attempts++;
 		}
