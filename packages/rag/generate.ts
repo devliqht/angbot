@@ -1,10 +1,14 @@
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { prisma } from "@project/database";
 import { genai } from "./gemini";
 import { buildContext } from "./retrieve";
 
 export type ChatPart =
 	| { text: string }
-	| { inlineData: { mimeType: string; data: string } };
+	| { inlineData: { mimeType: string; data: string } }
+	| { functionCall: unknown }
+	| { functionResponse: unknown };
 
 export type ChatTurn =
 	| { role: "user" | "model"; text: string }
@@ -47,16 +51,117 @@ export async function answer(
 		{ role: "user", parts: [{ text: query }] },
 	];
 
-	const res = await genai().models.generateContent({
-		model: agent.model,
-		contents,
-		config: { systemInstruction, temperature: agent.temperature ?? undefined },
-	});
+	// Connect to MCP if query is queue or hermes related
+	const isQueueRelated = /queue|hermes/i.test(query);
+	let transport: StreamableHTTPClientTransport | null = null;
+	let mcpClient: Client | null = null;
+	let functionDeclarations: Array<{
+		name: string;
+		description: string;
+		parameters: unknown;
+	}> = [];
 
-	return {
-		text: res.text ?? "",
-		contextMode: ctx.mode,
-		promptTokens: res.usageMetadata?.promptTokenCount,
-		responseTokens: res.usageMetadata?.candidatesTokenCount,
+	if (isQueueRelated) {
+		try {
+			const mcpUrl = process.env.HERMES_MCP_URL || "http://localhost:9111";
+			transport = new StreamableHTTPClientTransport(new URL(mcpUrl));
+			mcpClient = new Client(
+				{ name: "angbot-mcp-client", version: "1.0.0" },
+				{ capabilities: {} },
+			);
+			await mcpClient.connect(transport);
+			const mcpTools = await mcpClient.listTools();
+			if (mcpTools?.tools) {
+				functionDeclarations = mcpTools.tools.map((tool) => ({
+					name: tool.name,
+					description: tool.description || "",
+					parameters: tool.inputSchema,
+				}));
+			}
+		} catch (err) {
+			console.warn("Hermes MCP server offline or failed to connect:", err);
+			mcpClient = null;
+			transport = null;
+		}
+	}
+
+	const config: Record<string, unknown> = {
+		systemInstruction,
+		temperature: agent.temperature ?? undefined,
 	};
+
+	if (functionDeclarations.length > 0) {
+		config.tools = [{ functionDeclarations }];
+	}
+
+	try {
+		let attempts = 0;
+		const maxAttempts = 5;
+
+		while (attempts < maxAttempts) {
+			const res = await genai().models.generateContent({
+				model: agent.model,
+				contents,
+				config,
+			});
+
+			const functionCalls = res.functionCalls;
+			if (!functionCalls || functionCalls.length === 0) {
+				return {
+					text: res.text ?? "",
+					contextMode: ctx.mode,
+					promptTokens: res.usageMetadata?.promptTokenCount,
+					responseTokens: res.usageMetadata?.candidatesTokenCount,
+				};
+			}
+
+			const modelParts: ChatPart[] = [];
+			const functionResponseParts: ChatPart[] = [];
+
+			for (const call of functionCalls) {
+				modelParts.push({ functionCall: call });
+
+				let toolResultText = "";
+				if (mcpClient) {
+					try {
+						const toolResult = await mcpClient.callTool({
+							name: call.name,
+							arguments: call.args as Record<string, unknown> | undefined,
+						});
+						toolResultText = JSON.stringify(toolResult);
+					} catch (err) {
+						toolResultText = JSON.stringify({ error: String(err) });
+					}
+				} else {
+					toolResultText = JSON.stringify({
+						error: "MCP Client is not connected",
+					});
+				}
+
+				functionResponseParts.push({
+					functionResponse: {
+						name: call.name,
+						response: { result: toolResultText },
+					},
+				});
+			}
+
+			contents.push({ role: "model", parts: modelParts });
+			contents.push({ role: "user", parts: functionResponseParts });
+			attempts++;
+		}
+
+		return {
+			text: "Exceeded maximum tool calling attempts.",
+			contextMode: ctx.mode,
+		};
+	} finally {
+		if (transport) {
+			try {
+				await transport.close();
+			} catch (err) {
+				console.error("Error closing MCP transport:", err);
+			}
+		}
+	}
 }
