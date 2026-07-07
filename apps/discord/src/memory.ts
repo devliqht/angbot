@@ -12,3 +12,7 @@ export function pushMemory(channelId: string, turn: ChatTurn): void {
 	history.push(turn);
 	channelMemory.set(channelId, history.slice(-MEMORY_LIMIT));
 }
+
+export function clearMemory(channelId: string): void {
+	channelMemory.delete(channelId);
+}

@@ -13,4 +13,7 @@ export const commands = [
 			"Configure and switch the active AI agent for this channel.",
 		)
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+	new SlashCommandBuilder()
+		.setName("forget")
+		.setDescription("Forget the conversation history in this channel."),
 ].map((command) => command.toJSON());

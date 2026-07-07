@@ -6,6 +6,7 @@ import {
 	PermissionFlagsBits,
 	StringSelectMenuBuilder,
 } from "discord.js";
+import { clearMemory } from "../memory";
 
 export async function handleInteraction(
 	client: Client,
@@ -26,6 +27,16 @@ export async function handleInteraction(
 			await interaction.editReply(
 				`Pong! Roundtrip: **${roundtrip}ms** | Websocket: **${Math.round(client.ws.ping)}ms**`,
 			);
+			return;
+		}
+
+		if (interaction.commandName === "forget") {
+			clearMemory(interaction.channelId);
+			await interaction.reply({
+				content:
+					"I have forgotten our past conversation in this channel. Let's start fresh!",
+				ephemeral: false,
+			});
 			return;
 		}
 
