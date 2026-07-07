@@ -203,9 +203,13 @@ test("POST 400 when file type is unsupported", async () => {
 
 test("POST 201 creates/ingests document successfully", async () => {
 	const formData = new FormData();
-	const file = new File([new TextEncoder().encode("hello content")], "hello.txt", {
-		type: "text/plain",
-	});
+	const file = new File(
+		[new TextEncoder().encode("hello content")],
+		"hello.txt",
+		{
+			type: "text/plain",
+		},
+	);
 	formData.append("file", file);
 
 	const res = await POST(
