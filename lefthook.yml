@@ -1,0 +1,7 @@
+# Lefthook configuration to run Biome lint/format checks on pre-commit
+# Ref: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  commands:
+    biome-check:
+      run: bun run check
