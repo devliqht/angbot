@@ -65,6 +65,15 @@ mock.module("@project/rag", () => ({
 		if (answerError) throw answerError;
 		return mockAnswerResponse;
 	},
+	ingestDocument: async () => ({
+		id: "mock_doc",
+		agentId: "agent_123",
+		filename: "mock.txt",
+		mimeType: "text/plain",
+		sizeBytes: 0,
+		storageKey: "mock-key",
+		status: "READY",
+	}),
 }));
 
 // Import the endpoint handler after mocks are set

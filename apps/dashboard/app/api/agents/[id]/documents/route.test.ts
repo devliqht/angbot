@@ -74,6 +74,12 @@ mock.module("@project/rag", () => ({
 		mockDocs.push(newDoc);
 		return newDoc;
 	},
+	answer: async () => ({
+		text: "mocked response",
+		contextMode: "none" as const,
+		promptTokens: 10,
+		responseTokens: 15,
+	}),
 }));
 
 const { GET, POST } = await import("./route");
