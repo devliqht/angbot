@@ -123,7 +123,9 @@ test("PATCH 401 when unauthorized", async () => {
 });
 
 test("PATCH 404 when agent not found", async () => {
-	const res = await callPatch("nonexistent", "doc_123", { filename: "new.txt" });
+	const res = await callPatch("nonexistent", "doc_123", {
+		filename: "new.txt",
+	});
 	expect(res.status).toBe(404);
 });
 
@@ -134,7 +136,9 @@ test("PATCH 403 when user does not own agent", async () => {
 });
 
 test("PATCH 404 when document not found or belongs to other agent", async () => {
-	const res = await callPatch("agent_123", "nonexistent", { filename: "new.txt" });
+	const res = await callPatch("agent_123", "nonexistent", {
+		filename: "new.txt",
+	});
 	expect(res.status).toBe(404);
 });
 
