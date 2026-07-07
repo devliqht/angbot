@@ -36,7 +36,10 @@ export async function PATCH(
 		});
 
 		if (!document || document.agentId !== agentId) {
-			return NextResponse.json({ error: "Document not found" }, { status: 404 });
+			return NextResponse.json(
+				{ error: "Document not found" },
+				{ status: 404 },
+			);
 		}
 
 		let body: unknown;
@@ -113,7 +116,10 @@ export async function DELETE(
 		});
 
 		if (!document || document.agentId !== agentId) {
-			return NextResponse.json({ error: "Document not found" }, { status: 404 });
+			return NextResponse.json(
+				{ error: "Document not found" },
+				{ status: 404 },
+			);
 		}
 
 		// Delete document from DB (chunks cascade delete automatically)
