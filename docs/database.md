@@ -175,3 +175,62 @@ The dashboard exposes endpoints to manage (list, create, update, delete) agents 
     { "message": "Agent deleted successfully" }
     ```
     *   *Note:* Deleting an agent cascade-deletes all associated `DiscordBinding`, `Document`, `Chunk`, and `AgentCall` records.
+
+---
+
+## 📁 Agent Document (Context File) API Endpoints
+
+The dashboard exposes endpoints to manage (list, upload, rename, delete) context documents at [apps/dashboard/app/api/agents/[id]/documents](../apps/dashboard/app/api/agents/[id]/documents).
+
+### 1. List Agent's Documents
+*   **Endpoint:** `GET /api/agents/[id]/documents`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Response (200 OK):**
+    ```json
+    {
+      "documents": [
+        {
+          "id": "doc-cuid-here",
+          "agentId": "agent-cuid-here",
+          "filename": "context.txt",
+          "mimeType": "text/plain",
+          "sizeBytes": 128,
+          "storageKey": "agents/agent-cuid/123456-context.txt",
+          "status": "READY",
+          "error": null,
+          "chunkCount": 1,
+          "createdAt": "2026-07-01T12:00:00.000Z",
+          "updatedAt": "2026-07-01T12:00:00.000Z"
+        }
+      ]
+    }
+    ```
+
+### 2. Upload / Ingest a Document
+*   **Endpoint:** `POST /api/agents/[id]/documents`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Request Body (Multipart Form Data):**
+    *   `file` (File, Required): Must be a text file (`text/*`) or PDF (`application/pdf`).
+*   **Response (201 Created):** Returns the processed and ingested `document` object.
+
+### 3. Rename a Document
+*   **Endpoint:** `PATCH /api/agents/[id]/documents/[docId]`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Request Body (JSON):**
+    ```json
+    {
+      "filename": "new-name.txt"
+    }
+    ```
+    *   `filename` (String, Required): Must be non-empty.
+*   **Response (200 OK):** Returns the updated `document` object.
+
+### 4. Delete a Document
+*   **Endpoint:** `DELETE /api/agents/[id]/documents/[docId]`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Response (200 OK):**
+    ```json
+    { "message": "Document deleted successfully" }
+    ```
+    *   *Note:* Deleting a document cascade-deletes all associated `Chunk` records.
+
