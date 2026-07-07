@@ -5,7 +5,7 @@ import { auth } from "@/auth";
 
 // GET /api/agents/[id]/documents - List all documents (contexts) of an agent
 export async function GET(
-	req: Request,
+	_req: Request,
 	{ params }: { params: Promise<{ id: string }> },
 ) {
 	const session = await auth();
@@ -85,7 +85,10 @@ export async function POST(
 		const mimeType = file.type;
 		if (!mimeType.startsWith("text/") && mimeType !== "application/pdf") {
 			return NextResponse.json(
-				{ error: "Unsupported file type. Only text files and PDFs are supported." },
+				{
+					error:
+						"Unsupported file type. Only text files and PDFs are supported.",
+				},
 				{ status: 400 },
 			);
 		}
@@ -106,7 +109,9 @@ export async function POST(
 	} catch (err) {
 		console.error("Failed to ingest document:", err);
 		return NextResponse.json(
-			{ error: err instanceof Error ? err.message : "Failed to ingest document" },
+			{
+				error: err instanceof Error ? err.message : "Failed to ingest document",
+			},
 			{ status: 500 },
 		);
 	}
