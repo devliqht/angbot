@@ -35,6 +35,7 @@ The relational database schema is configured in [packages/database/prisma/schema
     *   `systemPrompt`: The core behavioral instructions passed to Gemini.
     *   `model`: The model used (defaults to `"gemini-flash-latest"`).
     *   `temperature`: Creativity/randomness control (defaults to `1.0`).
+    *   `parentAgentId`: Optional ID of a parent global agent. Enables system prompt and document context inheritance.
 
 ### 3. RAG Documents & Chunks
 *   **`Document`**: Files uploaded by users to give an agent context.
@@ -152,19 +153,21 @@ The dashboard exposes endpoints to manage (list, create, update, delete) agents 
       "description": "Assistant for science",
       "systemPrompt": "You are Hermes, assist with science homework.",
       "model": "gemini-flash-latest",
-      "temperature": 0.7
+      "temperature": 0.7,
+      "parentAgentId": "global-agent-id"
     }
     ```
     *   `name` (String, Required): Must be non-empty.
     *   `systemPrompt` (String, Required): Must be non-empty.
     *   `model` (String, Optional): Defaults to `"gemini-flash-latest"`.
     *   `temperature` (Number, Optional): Must be a float between `0.0` and `2.0`, or `null`. Defaults to `null` (uses model's default temperature).
+    *   `parentAgentId` (String, Optional): ID of parent agent. Must belong to the same user.
 *   **Response (201 Created):** Returns the created `agent` object.
 
 ### 3. Modify an Agent
 *   **Endpoint:** `PATCH /api/agents/[id]`
 *   **Access Control:** Authenticated session required. Authenticated user must own the agent (returns `403 Forbidden` if owned by someone else).
-*   **Request Body (JSON):** Supports updating `name`, `description`, `systemPrompt`, `model`, and/or `temperature` (supports setting to a number between `0.0` and `2.0`, or `null`).
+*   **Request Body (JSON):** Supports updating `name`, `description`, `systemPrompt`, `model`, `temperature` (supports setting to a number between `0.0` and `2.0`, or `null`), and `parentAgentId` (string ID to link a parent, or `null` to clear).
 *   **Response (200 OK):** Returns the updated `agent` object.
 
 ### 4. Delete an Agent
