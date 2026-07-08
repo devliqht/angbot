@@ -7,6 +7,7 @@ import Google from "next-auth/providers/google";
 import { verifyPassword } from "@/lib/password";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+	trustHost: true,
 	adapter: PrismaAdapter(prisma),
 	// JWT sessions are required for the Credentials provider; Google still
 	// persists users/accounts through the Prisma adapter.
