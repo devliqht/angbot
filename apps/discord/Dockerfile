@@ -1,4 +1,4 @@
-FROM oven/sh:1.1-alpine
+FROM oven/bun:alpine
 WORKDIR /usr/src/app
 
 # Copy root monorepo config and lockfile
