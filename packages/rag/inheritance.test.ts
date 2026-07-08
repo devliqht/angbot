@@ -15,16 +15,28 @@ let mockChunks: MockChunk[] = [];
 mock.module("@project/database", () => ({
 	prisma: {
 		chunk: {
-			findMany: ({ where }: { where: { agentId?: { in: string[] } | string } }) => {
+			findMany: ({
+				where,
+			}: {
+				where: { agentId?: { in: string[] } | string };
+			}) => {
 				const agentIds =
-					where.agentId && typeof where.agentId === "object" && "in" in where.agentId
+					where.agentId &&
+					typeof where.agentId === "object" &&
+					"in" in where.agentId
 						? where.agentId.in
 						: [where.agentId as string];
 				return mockChunks.filter((c) => agentIds.includes(c.agentId));
 			},
-			aggregate: ({ where }: { where: { agentId?: { in: string[] } | string } }) => {
+			aggregate: ({
+				where,
+			}: {
+				where: { agentId?: { in: string[] } | string };
+			}) => {
 				const agentIds =
-					where.agentId && typeof where.agentId === "object" && "in" in where.agentId
+					where.agentId &&
+					typeof where.agentId === "object" &&
+					"in" in where.agentId
 						? where.agentId.in
 						: [where.agentId as string];
 				const tokenSum = mockChunks
