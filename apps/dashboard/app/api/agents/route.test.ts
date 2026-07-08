@@ -19,6 +19,9 @@ mock.module("@project/database", () => ({
 	prisma: {
 		agent: {
 			findMany: () => agentsList,
+			findUnique: ({ where }: { where: { id: string } }) => {
+				return agentsList.find((a) => a.id === where.id) || null;
+			},
 			create: ({ data }: { data: Record<string, unknown> }) => {
 				prismaCreatedAgent = data;
 				return {
@@ -122,5 +125,60 @@ test("POST 201 creates agent successfully", async () => {
 		systemPrompt: "Do everything",
 		model: "gemini-pro",
 		temperature: 0.5,
+		parentAgentId: null,
 	});
 });
+
+test("POST 404 when parent agent not found", async () => {
+	const res = await POST(
+		new Request("http://test/api/agents", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Sub Agent",
+				systemPrompt: "Instructions",
+				parentAgentId: "nonexistent",
+			}),
+		}),
+	);
+	expect(res.status).toBe(404);
+});
+
+test("POST 403 when parent agent belongs to other user", async () => {
+	agentsList.push({
+		id: "other_agent",
+		userId: "other_user",
+		name: "Other Agent",
+		systemPrompt: "Instructions",
+	});
+
+	const res = await POST(
+		new Request("http://test/api/agents", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Sub Agent",
+				systemPrompt: "Instructions",
+				parentAgentId: "other_agent",
+			}),
+		}),
+	);
+	expect(res.status).toBe(403);
+});
+
+test("POST 201 creates subagent successfully", async () => {
+	const res = await POST(
+		new Request("http://test/api/agents", {
+			method: "POST",
+			body: JSON.stringify({
+				name: "Sub Agent",
+				systemPrompt: "Instructions",
+				parentAgentId: "agent_1",
+			}),
+		}),
+	);
+
+	expect(res.status).toBe(201);
+	const data = await res.json();
+	expect(data.agent.parentAgentId).toBe("agent_1");
+	expect(prismaCreatedAgent?.parentAgentId).toBe("agent_1");
+});
+
