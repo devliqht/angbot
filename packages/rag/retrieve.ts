@@ -85,4 +85,3 @@ export async function buildContext(
 	const top = await retrieve(agentId, query, RETRIEVAL_TOP_K, globalAgentId);
 	return { mode: "rag", text: top.map((c) => c.content).join("\n\n") };
 }
-
