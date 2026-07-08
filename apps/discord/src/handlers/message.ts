@@ -32,7 +32,10 @@ export async function handleMessage(
 		}
 
 		// Mark typing state in Discord
-		if ("sendTyping" in message.channel && typeof (message.channel as any).sendTyping === "function") {
+		if (
+			"sendTyping" in message.channel &&
+			typeof (message.channel as any).sendTyping === "function"
+		) {
 			await (message.channel as any).sendTyping();
 		}
 
