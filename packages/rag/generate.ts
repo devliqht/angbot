@@ -52,7 +52,6 @@ export async function answer(
 		? `${baseSystemPrompt}\n\n# Reference context\nUse the context below to answer when relevant. If it does not contain the answer, say so.\n\n${ctx.text}`
 		: baseSystemPrompt;
 
-
 	const contents = [
 		...history.map((h) => {
 			if ("parts" in h && Array.isArray(h.parts)) {
