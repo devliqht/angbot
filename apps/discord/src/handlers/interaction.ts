@@ -40,6 +40,106 @@ export async function handleInteraction(
 			return;
 		}
 
+		if (interaction.commandName === "status") {
+			if (!interaction.guildId || !interaction.channelId) {
+				await interaction.reply({
+					content: "This command can only be used within a server text channel.",
+					ephemeral: true,
+				});
+				return;
+			}
+
+			await interaction.deferReply({ ephemeral: false });
+
+			try {
+				const bindings = await prisma.discordBinding.findMany({
+					where: {
+						guildId: interaction.guildId,
+						channelId: { in: [interaction.channelId, ""] },
+					},
+					include: { agent: { include: { parentAgent: true } } },
+				});
+
+				const channelBinding = bindings.find((b) => b.channelId === interaction.channelId);
+				const globalBinding = bindings.find((b) => b.channelId === "");
+
+				if (!channelBinding && !globalBinding) {
+					await interaction.editReply(
+						"❌ **No AI Agent is currently bound to this server or channel.**\nUse `/agent` to bind an agent.",
+					);
+					return;
+				}
+
+				let statusMessage = "📊 **AngBot Active Bindings & Telemetry**\n\n";
+
+				if (channelBinding) {
+					const agent = channelBinding.agent;
+					const stats = await prisma.agentCall.aggregate({
+						where: {
+							agentId: agent.id,
+							discordGuildId: interaction.guildId,
+							discordChannelId: interaction.channelId,
+						},
+						_count: { _all: true },
+						_sum: { promptTokens: true, responseTokens: true },
+					});
+					const docsCount = await prisma.document.count({
+						where: { agentId: agent.id },
+					});
+
+					const invocations = stats._count._all ?? 0;
+					const tokens = (stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
+
+					statusMessage += "🔹 **Channel Subagent:**\n";
+					statusMessage += `  • **Name:** ${agent.name}\n`;
+					statusMessage += `  • **Model:** \`${agent.model}\` (Temp: ${agent.temperature ?? "default"})\n`;
+					statusMessage += `  • **Files Ingested:** ${docsCount} document(s)\n`;
+					statusMessage += `  • **Invocations (This Channel):** ${invocations.toLocaleString()}\n`;
+					statusMessage += `  • **Tokens Consumed (This Channel):** ${tokens.toLocaleString()}\n`;
+
+					if (agent.parentAgent) {
+						statusMessage += `  • **Inherits From (Parent Global Agent):** ${agent.parentAgent.name}\n`;
+					}
+					statusMessage += "\n";
+				} else {
+					statusMessage += "🔹 **Channel Subagent:** *None (using server default)*\n\n";
+				}
+
+				if (globalBinding) {
+					const agent = globalBinding.agent;
+					const stats = await prisma.agentCall.aggregate({
+						where: {
+							agentId: agent.id,
+							discordGuildId: interaction.guildId,
+						},
+						_count: { _all: true },
+						_sum: { promptTokens: true, responseTokens: true },
+					});
+					const docsCount = await prisma.document.count({
+						where: { agentId: agent.id },
+					});
+
+					const invocations = stats._count._all ?? 0;
+					const tokens = (stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
+
+					statusMessage += "🔸 **Server Global Agent:**\n";
+					statusMessage += `  • **Name:** ${agent.name}\n`;
+					statusMessage += `  • **Model:** \`${agent.model}\` (Temp: ${agent.temperature ?? "default"})\n`;
+					statusMessage += `  • **Files Ingested:** ${docsCount} document(s)\n`;
+					statusMessage += `  • **Total Invocations (Server):** ${invocations.toLocaleString()}\n`;
+					statusMessage += `  • **Total Tokens Consumed (Server):** ${tokens.toLocaleString()}\n`;
+				} else {
+					statusMessage += "🔸 **Server Global Agent:** *None configured (fallback)*\n";
+				}
+
+				await interaction.editReply(statusMessage);
+			} catch (err) {
+				console.error("Failed to query status details:", err);
+				await interaction.editReply("❌ Failed to retrieve status details due to a database error.");
+			}
+			return;
+		}
+
 		if (interaction.commandName === "agent") {
 			// 1. Verify user is administrator
 			if (
