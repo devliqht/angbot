@@ -38,15 +38,15 @@ export async function POST(req: Request) {
 		return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
 	}
 
-	const { name, description, systemPrompt, model, temperature, parentAgentId } = (body ??
-		{}) as {
-		name?: unknown;
-		description?: unknown;
-		systemPrompt?: unknown;
-		model?: unknown;
-		temperature?: unknown;
-		parentAgentId?: unknown;
-	};
+	const { name, description, systemPrompt, model, temperature, parentAgentId } =
+		(body ?? {}) as {
+			name?: unknown;
+			description?: unknown;
+			systemPrompt?: unknown;
+			model?: unknown;
+			temperature?: unknown;
+			parentAgentId?: unknown;
+		};
 
 	if (typeof name !== "string" || !name.trim()) {
 		return NextResponse.json(
