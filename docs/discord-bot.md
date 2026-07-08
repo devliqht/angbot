@@ -203,6 +203,98 @@ The bot registers its slash commands dynamically on the `ready` event. When logg
 
 ---
 
+## 🔗 Server-wide Global Agent & Channel Subagent Inheritance
+
+The `@project/rag` package supports context and system prompt inheritance. An agent bound to a specific channel (subagent) can inherit the global system instructions and context files of the agent bound to the server/guild.
+
+To implement this on the Discord bot client, follow these steps:
+
+### 1. Update Slash Command Definition (`apps/discord/src/commands.ts`)
+Add an optional `scope` option to the `/agent` command:
+```typescript
+new SlashCommandBuilder()
+	.setName("agent")
+	.setDescription("Configure and switch the active AI agent.")
+	.addStringOption((option) =>
+		option
+			.setName("scope")
+			.setDescription("Bind agent to this channel only or the whole server")
+			.setRequired(false)
+			.addChoices(
+				{ name: "Channel", value: "channel" },
+				{ name: "Server", value: "server" }
+			)
+	)
+```
+
+### 2. Handle Scope in Select Menu (`apps/discord/src/handlers/interaction.ts`)
+Encode the scope (defaulting to `"channel"` if not provided) into the custom ID of the select menu builder, e.g., `select_agent:${scope}`:
+```typescript
+const scope = interaction.options.getString("scope") || "channel";
+
+const selectMenu = new StringSelectMenuBuilder()
+	.setCustomId(`select_agent:${scope}`)
+	.setPlaceholder(`Select an AI agent to bind to this ${scope}`)
+```
+In the select menu interaction handler, extract the scope and upsert the binding. If scope is `"server"`, set `channelId` to `""`:
+```typescript
+if (interaction.customId.startsWith("select_agent:")) {
+	const scope = interaction.customId.split(":")[1];
+	const targetChannelId = scope === "server" ? "" : interaction.channelId;
+
+	await prisma.discordBinding.upsert({
+		where: {
+			guildId_channelId: {
+				guildId: interaction.guildId,
+				channelId: targetChannelId,
+			},
+		},
+		update: {
+			agentId,
+			createdBy: interaction.user.id,
+		},
+		create: {
+			guildId: interaction.guildId,
+			channelId: targetChannelId,
+			agentId,
+			createdBy: interaction.user.id,
+		},
+	});
+}
+```
+
+### 3. Retrieve Combined Context in Message Event (`apps/discord/src/handlers/message.ts`)
+Fetch both the specific channel binding and the server-wide default binding. If both exist, pass the server agent ID as `globalAgentId` to `answer()`:
+```typescript
+// Fetch both specific channel binding and guild default binding
+const bindings = await prisma.discordBinding.findMany({
+	where: {
+		guildId: message.guildId ?? undefined,
+		channelId: { in: [message.channelId, ""] },
+	},
+});
+
+const channelBinding = bindings.find((b) => b.channelId === message.channelId);
+const globalBinding = bindings.find((b) => b.channelId === "");
+
+if (!channelBinding && !globalBinding) return; // No agent bound
+
+// Determine primary agent and parent global agent
+const primaryAgentId = channelBinding ? channelBinding.agentId : globalBinding.agentId;
+const globalAgentId = channelBinding && globalBinding ? globalBinding.agentId : undefined;
+
+// Query the RAG engine passing globalAgentId for inheritance
+const result = await answer(
+	primaryAgentId,
+	enrichedQuery,
+	history,
+	undefined,
+	globalAgentId
+);
+```
+
+---
+
 ## 🧠 Short-Term Conversation Memory *(Added by m4tcha)*
 
 > The sections below were added by **m4tcha** and are not part of the original manual above. Nothing above this line was changed.
