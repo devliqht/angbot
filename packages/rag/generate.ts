@@ -30,17 +30,28 @@ export async function answer(
 	query: string,
 	history: ChatTurn[] = [],
 	systemPromptOverride?: string,
+	globalAgentId?: string,
 ): Promise<AnswerResult> {
 	const agent = await prisma.agent.findUniqueOrThrow({
 		where: { id: agentId },
 	});
-	const ctx = await buildContext(agentId, query);
+	const ctx = await buildContext(agentId, query, globalAgentId);
 
-	const baseSystemPrompt = systemPromptOverride ?? agent.systemPrompt;
+	let baseSystemPrompt = systemPromptOverride ?? agent.systemPrompt;
+
+	if (globalAgentId) {
+		const globalAgent = await prisma.agent.findUnique({
+			where: { id: globalAgentId },
+		});
+		if (globalAgent?.systemPrompt) {
+			baseSystemPrompt = `${globalAgent.systemPrompt}\n\n# Subagent Behavior/Instructions:\n${baseSystemPrompt}`;
+		}
+	}
 
 	const systemInstruction = ctx.text
 		? `${baseSystemPrompt}\n\n# Reference context\nUse the context below to answer when relevant. If it does not contain the answer, say so.\n\n${ctx.text}`
 		: baseSystemPrompt;
+
 
 	const contents = [
 		...history.map((h) => {
