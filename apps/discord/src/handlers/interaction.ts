@@ -170,7 +170,8 @@ export async function handleInteraction(
 			});
 
 			if (!account) {
-				const dashboardUrl = process.env.DASHBOARD_URL || "http://localhost:3000";
+				const dashboardUrl =
+					process.env.DASHBOARD_URL || "http://localhost:3000";
 				await interaction.reply({
 					content: `You need to link your Discord account by logging into the dashboard at ${dashboardUrl}/login_page first.`,
 					ephemeral: true,
