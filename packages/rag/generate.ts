@@ -35,13 +35,14 @@ export async function answer(
 	const agent = await prisma.agent.findUniqueOrThrow({
 		where: { id: agentId },
 	});
-	const ctx = await buildContext(agentId, query, globalAgentId);
+	const effectiveGlobalAgentId = globalAgentId ?? agent.parentAgentId ?? undefined;
+	const ctx = await buildContext(agentId, query, effectiveGlobalAgentId);
 
 	let baseSystemPrompt = systemPromptOverride ?? agent.systemPrompt;
 
-	if (globalAgentId) {
+	if (effectiveGlobalAgentId) {
 		const globalAgent = await prisma.agent.findUnique({
-			where: { id: globalAgentId },
+			where: { id: effectiveGlobalAgentId },
 		});
 		if (globalAgent?.systemPrompt) {
 			baseSystemPrompt = `${globalAgent.systemPrompt}\n\n# Subagent Behavior/Instructions:\n${baseSystemPrompt}`;
