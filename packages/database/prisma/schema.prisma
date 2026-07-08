@@ -77,23 +77,27 @@ model VerificationToken {
 // ---------------------------------------------------------------------------
 
 model Agent {
-  id           String   @id @default(cuid())
-  userId       String // creator / owner
-  name         String
-  description  String?  @db.Text
-  systemPrompt String   @db.LongText
-  model        String   @default("gemini-flash-latest") // Gemini model id
-  temperature  Float?   @default(1.0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String // creator / owner
+  name          String
+  description   String?  @db.Text
+  systemPrompt  String   @db.LongText
+  model         String   @default("gemini-flash-latest") // Gemini model id
+  temperature   Float?   @default(1.0)
+  parentAgentId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  documents Document[]
-  chunks    Chunk[]
-  bindings  DiscordBinding[]
-  calls     AgentCall[]
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentAgent Agent?           @relation("AgentInheritance", fields: [parentAgentId], references: [id], onDelete: SetNull)
+  subAgents   Agent[]          @relation("AgentInheritance")
+  documents   Document[]
+  chunks      Chunk[]
+  bindings    DiscordBinding[]
+  calls       AgentCall[]
 
   @@index([userId])
+  @@index([parentAgentId])
 }
 
 // ---------------------------------------------------------------------------
