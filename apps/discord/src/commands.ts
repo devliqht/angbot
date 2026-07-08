@@ -18,5 +18,7 @@ export const commands = [
 		.setDescription("Forget the conversation history in this channel."),
 	new SlashCommandBuilder()
 		.setName("status")
-		.setDescription("View active agent bindings and telemetry for this channel/server."),
+		.setDescription(
+			"View active agent bindings and telemetry for this channel/server.",
+		),
 ].map((command) => command.toJSON());
