@@ -44,13 +44,14 @@ export async function PATCH(
 		return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
 	}
 
-	const { name, description, systemPrompt, model, temperature } = (body ??
+	const { name, description, systemPrompt, model, temperature, parentAgentId } = (body ??
 		{}) as {
 		name?: unknown;
 		description?: unknown;
 		systemPrompt?: unknown;
 		model?: unknown;
 		temperature?: unknown;
+		parentAgentId?: unknown;
 	};
 
 	const dataToUpdate: {
@@ -59,6 +60,7 @@ export async function PATCH(
 		systemPrompt?: string;
 		model?: string;
 		temperature?: number | null;
+		parentAgentId?: string | null;
 	} = {};
 
 	if (name !== undefined) {
@@ -116,6 +118,50 @@ export async function PATCH(
 		} else {
 			return NextResponse.json(
 				{ error: "description must be a string or null" },
+				{ status: 400 },
+			);
+		}
+	}
+
+	if (parentAgentId !== undefined) {
+		if (parentAgentId === null) {
+			dataToUpdate.parentAgentId = null;
+		} else if (typeof parentAgentId === "string" && parentAgentId.trim()) {
+			const trimmedParentId = parentAgentId.trim();
+			if (trimmedParentId === agentId) {
+				return NextResponse.json(
+					{ error: "An agent cannot be its own parent" },
+					{ status: 400 },
+				);
+			}
+
+			try {
+				const parentAgent = await prisma.agent.findUnique({
+					where: { id: trimmedParentId },
+				});
+				if (!parentAgent) {
+					return NextResponse.json(
+						{ error: "Parent agent not found" },
+						{ status: 404 },
+					);
+				}
+				if (parentAgent.userId !== session.user.id) {
+					return NextResponse.json(
+						{ error: "Forbidden: Parent agent belongs to another user" },
+						{ status: 403 },
+					);
+				}
+				dataToUpdate.parentAgentId = trimmedParentId;
+			} catch (err) {
+				console.error("Failed to query parent agent:", err);
+				return NextResponse.json(
+					{ error: "Failed to query parent agent from database" },
+					{ status: 500 },
+				);
+			}
+		} else {
+			return NextResponse.json(
+				{ error: "parentAgentId must be a string or null" },
 				{ status: 400 },
 			);
 		}
