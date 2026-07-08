@@ -40,6 +40,22 @@ mock.module("@project/database", () => ({
 		agent: {
 			findUnique: ({ where }: { where: { id: string } }) => {
 				if (mockAgent && where.id === mockAgent.id) return mockAgent;
+				if (where.id === "parent_123") {
+					return {
+						id: "parent_123",
+						userId: "user_123",
+						name: "Parent Agent",
+						systemPrompt: "Instructions",
+					};
+				}
+				if (where.id === "other_agent") {
+					return {
+						id: "other_agent",
+						userId: "other_user",
+						name: "Other User Agent",
+						systemPrompt: "Instructions",
+					};
+				}
 				return null;
 			},
 			update: ({
@@ -174,3 +190,31 @@ test("DELETE deletes agent successfully", async () => {
 	expect(res.status).toBe(200);
 	expect(prismaDeletedId).toBe("agent_123");
 });
+
+test("PATCH 400 when setting itself as parent", async () => {
+	const res = await callPatch("agent_123", { parentAgentId: "agent_123" });
+	expect(res.status).toBe(400);
+});
+
+test("PATCH 404 when parent agent not found", async () => {
+	const res = await callPatch("agent_123", { parentAgentId: "nonexistent" });
+	expect(res.status).toBe(404);
+});
+
+test("PATCH 403 when parent agent belongs to other user", async () => {
+	const res = await callPatch("agent_123", { parentAgentId: "other_agent" });
+	expect(res.status).toBe(403);
+});
+
+test("PATCH 200 updates parentAgentId successfully", async () => {
+	const res = await callPatch("agent_123", { parentAgentId: "parent_123" });
+	expect(res.status).toBe(200);
+	expect(prismaUpdates).toEqual({ parentAgentId: "parent_123" });
+});
+
+test("PATCH 200 clears parentAgentId successfully", async () => {
+	const res = await callPatch("agent_123", { parentAgentId: null });
+	expect(res.status).toBe(200);
+	expect(prismaUpdates).toEqual({ parentAgentId: null });
+});
+
