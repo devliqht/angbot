@@ -2,7 +2,7 @@ import { prisma } from "@project/database";
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-// GET /api/agents - List all agents of the authenticated user
+// GET /api/agents - List all agents of the authenticated user with stats
 export async function GET() {
 	const session = await auth();
 	if (!session?.user?.id) {
@@ -14,7 +14,28 @@ export async function GET() {
 			where: { userId: session.user.id },
 			orderBy: { createdAt: "desc" },
 		});
-		return NextResponse.json({ agents });
+
+		// Fetch stats (invocations, tokensUsed) for all agents
+		const stats = await prisma.agentCall.groupBy({
+			by: ["agentId"],
+			where: { agentId: { in: agents.map((a) => a.id) } },
+			_count: { _all: true },
+			_sum: { promptTokens: true, responseTokens: true },
+		});
+
+		const statsMap = new Map(stats.map((s) => [s.agentId, s]));
+
+		const agentsWithStats = agents.map((agent) => {
+			const stat = statsMap.get(agent.id);
+			return {
+				...agent,
+				invocations: stat?._count._all ?? 0,
+				tokensUsed:
+					(stat?._sum.promptTokens ?? 0) + (stat?._sum.responseTokens ?? 0),
+			};
+		});
+
+		return NextResponse.json({ agents: agentsWithStats });
 	} catch (err) {
 		console.error("Failed to list agents:", err);
 		return NextResponse.json(
@@ -135,7 +156,7 @@ export async function POST(req: Request) {
 				systemPrompt: systemPrompt.trim(),
 				model: parsedModel,
 				temperature: parsedTemp,
-				parentAgentId: parsedParentId,
+				parentAgent: parsedParentId ? { connect: { id: parsedParentId } } : undefined,
 			},
 		});
 		return NextResponse.json({ agent }, { status: 201 });

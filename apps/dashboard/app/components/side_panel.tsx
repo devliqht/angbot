@@ -27,10 +27,10 @@ export default function SidePanel() {
 				</button>
 				<button
 					type="button"
-					className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === "Agents" ? "bg-[#202127]" : "bg-[#1b1b1f]"}`}
-					onClick={() => setCurrentPage("Agents")}
+					className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === "Subagents" ? "bg-[#202127]" : "bg-[#1b1b1f]"}`}
+					onClick={() => setCurrentPage("Subagents")}
 				>
-					<h2 className="text-[1.4rem]">Agents</h2>
+					<h2 className="text-[1.4rem]">Subagents</h2>
 				</button>
 			</div>
 			<div className="w-full flex justify-start mt-2 ms-10 mb-5">

@@ -2,7 +2,7 @@
 
 import { createContext, type ReactNode, useState } from "react";
 
-type PageType = "Dashboard" | "Agents" | "Profile";
+type PageType = "Dashboard" | "Subagents" | "Profile";
 
 interface MainContextType {
 	currentPage: PageType;

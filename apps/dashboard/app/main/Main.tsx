@@ -1,5 +1,5 @@
 "use client";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import Agents from "../agents/Agents";
 import SidePanel from "../components/side_panel";
@@ -11,6 +11,11 @@ import Profile from "../profile/Profile";
 function Header({ currPage }: { currPage: string }) {
 	const serverContext = useContext(ServerContext);
 	const mainContext = useContext(MainContext);
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	if (!serverContext) throw new Error("Error in finding the right server");
 	if (!mainContext) throw new Error("Error in main page");
@@ -24,7 +29,7 @@ function Header({ currPage }: { currPage: string }) {
 				<h1 className="text-4xl font-bold">{currPage}</h1>
 			</div>
 			<div className="flex items-center gap-3 h-full">
-				{currPage !== "Profile" && (
+				{currPage !== "Profile" && mounted && (
 					<div>
 						<select
 							value={currentServerId}
@@ -60,6 +65,24 @@ function Header({ currPage }: { currPage: string }) {
 export default function Main_Page() {
 	const context = useContext(MainContext);
 
+	useEffect(() => {
+		if (typeof window !== "undefined") {
+			const searchParams = new URLSearchParams(window.location.search);
+			if (searchParams.get("action") === "add-bot") {
+				const clientId =
+					process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || "1520981304022405301";
+				const DISCORD_BOT_PERMISSIONS = 68608;
+				const invite = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${DISCORD_BOT_PERMISSIONS}&scope=bot+applications.commands`;
+
+				// Clean up the URL query parameters
+				window.history.replaceState({}, document.title, window.location.pathname);
+
+				// Redirect to the Discord bot invite URL
+				window.location.href = invite;
+			}
+		}
+	}, []);
+
 	if (!context) throw new Error("Error in main page");
 
 	const { currentPage } = context;
@@ -73,7 +96,7 @@ export default function Main_Page() {
 				</div>
 				<div className="flex-1 overflow-y-auto p-6">
 					{currentPage === "Dashboard" && <Dashboard />}
-					{currentPage === "Agents" && <Agents />}
+					{currentPage === "Subagents" && <Agents />}
 					{currentPage === "Profile" && <Profile />}
 				</div>
 			</div>
