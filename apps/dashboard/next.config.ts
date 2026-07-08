@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
 		],
 	},
 	allowedDevOrigins: ["10.90.216.77"],
+	transpilePackages: ["@project/rag", "@project/database"],
 };
 
 export default nextConfig;

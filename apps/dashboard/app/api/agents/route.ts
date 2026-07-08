@@ -135,7 +135,9 @@ export async function POST(req: Request) {
 				systemPrompt: systemPrompt.trim(),
 				model: parsedModel,
 				temperature: parsedTemp,
-				parentAgentId: parsedParentId,
+				parentAgent: parsedParentId
+					? { connect: { id: parsedParentId } }
+					: undefined,
 			},
 		});
 		return NextResponse.json({ agent }, { status: 201 });

@@ -19,7 +19,9 @@
 			}
 		],
 		"paths": {
-			"@/*": ["./*"]
+			"@/*": ["./*"],
+			"@project/database": ["../../packages/database"],
+			"@project/rag": ["../../packages/rag"]
 		}
 	},
 	"include": [
