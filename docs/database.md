@@ -237,3 +237,32 @@ The dashboard exposes endpoints to manage (list, upload, rename, delete) context
     ```
     *   *Note:* Deleting a document cascade-deletes all associated `Chunk` records.
 
+---
+
+## 🤖 Agent System Prompt API Endpoints
+
+The dashboard exposes dedicated endpoints to manage the system instructions prompt at [apps/dashboard/app/api/agents/[id]/system-prompt](../apps/dashboard/app/api/agents/[id]/system-prompt).
+
+### 1. Get Agent's System Prompt
+*   **Endpoint:** `GET /api/agents/[id]/system-prompt`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Response (200 OK):**
+    ```json
+    {
+      "systemPrompt": "You are a helpful assistant..."
+    }
+    ```
+
+### 2. Update Agent's System Prompt
+*   **Endpoint:** `PATCH /api/agents/[id]/system-prompt`
+*   **Access Control:** Authenticated session required. Authenticated user must own the agent.
+*   **Request Body (JSON):**
+    ```json
+    {
+      "systemPrompt": "New prompt behavior instructions..."
+    }
+    ```
+    *   `systemPrompt` (String, Required): Must be non-empty.
+*   **Response (200 OK):** Returns the updated `systemPrompt` string.
+
+
