@@ -43,7 +43,8 @@ export async function handleInteraction(
 		if (interaction.commandName === "status") {
 			if (!interaction.guildId || !interaction.channelId) {
 				await interaction.reply({
-					content: "This command can only be used within a server text channel.",
+					content:
+						"This command can only be used within a server text channel.",
 					ephemeral: true,
 				});
 				return;
@@ -60,7 +61,9 @@ export async function handleInteraction(
 					include: { agent: { include: { parentAgent: true } } },
 				});
 
-				const channelBinding = bindings.find((b) => b.channelId === interaction.channelId);
+				const channelBinding = bindings.find(
+					(b) => b.channelId === interaction.channelId,
+				);
 				const globalBinding = bindings.find((b) => b.channelId === "");
 
 				if (!channelBinding && !globalBinding) {
@@ -88,7 +91,8 @@ export async function handleInteraction(
 					});
 
 					const invocations = stats._count._all ?? 0;
-					const tokens = (stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
+					const tokens =
+						(stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
 
 					statusMessage += "🔹 **Channel Subagent:**\n";
 					statusMessage += `  • **Name:** ${agent.name}\n`;
@@ -102,7 +106,8 @@ export async function handleInteraction(
 					}
 					statusMessage += "\n";
 				} else {
-					statusMessage += "🔹 **Channel Subagent:** *None (using server default)*\n\n";
+					statusMessage +=
+						"🔹 **Channel Subagent:** *None (using server default)*\n\n";
 				}
 
 				if (globalBinding) {
@@ -120,7 +125,8 @@ export async function handleInteraction(
 					});
 
 					const invocations = stats._count._all ?? 0;
-					const tokens = (stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
+					const tokens =
+						(stats._sum.promptTokens ?? 0) + (stats._sum.responseTokens ?? 0);
 
 					statusMessage += "🔸 **Server Global Agent:**\n";
 					statusMessage += `  • **Name:** ${agent.name}\n`;
@@ -129,13 +135,16 @@ export async function handleInteraction(
 					statusMessage += `  • **Total Invocations (Server):** ${invocations.toLocaleString()}\n`;
 					statusMessage += `  • **Total Tokens Consumed (Server):** ${tokens.toLocaleString()}\n`;
 				} else {
-					statusMessage += "🔸 **Server Global Agent:** *None configured (fallback)*\n";
+					statusMessage +=
+						"🔸 **Server Global Agent:** *None configured (fallback)*\n";
 				}
 
 				await interaction.editReply(statusMessage);
 			} catch (err) {
 				console.error("Failed to query status details:", err);
-				await interaction.editReply("❌ Failed to retrieve status details due to a database error.");
+				await interaction.editReply(
+					"❌ Failed to retrieve status details due to a database error.",
+				);
 			}
 			return;
 		}
