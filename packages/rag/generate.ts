@@ -114,7 +114,7 @@ export async function answer(
 		while (attempts < maxAttempts) {
 			const res = await genai().models.generateContent({
 				model: agent.model,
-				contents,
+				contents: contents as any,
 				config,
 			});
 
@@ -142,7 +142,7 @@ export async function answer(
 				if (mcpClient) {
 					try {
 						const toolResult = await mcpClient.callTool({
-							name: call.name,
+							name: call.name ?? "",
 							arguments: call.args as Record<string, unknown> | undefined,
 						});
 						toolResultText = JSON.stringify(toolResult);
