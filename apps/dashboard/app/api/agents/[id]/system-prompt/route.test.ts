@@ -46,7 +46,8 @@ mock.module("@project/database", () => ({
 				return {
 					id: where.id,
 					userId: mockAgent?.userId || "user_123",
-					systemPrompt: (data.systemPrompt as string) ?? mockAgent?.systemPrompt ?? "",
+					systemPrompt:
+						(data.systemPrompt as string) ?? mockAgent?.systemPrompt ?? "",
 				};
 			},
 		},
