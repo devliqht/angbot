@@ -181,4 +181,3 @@ test("POST 201 creates subagent successfully", async () => {
 	expect(data.agent.parentAgentId).toBe("agent_1");
 	expect(prismaCreatedAgent?.parentAgentId).toBe("agent_1");
 });
-
