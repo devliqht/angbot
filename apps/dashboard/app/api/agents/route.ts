@@ -38,13 +38,14 @@ export async function POST(req: Request) {
 		return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
 	}
 
-	const { name, description, systemPrompt, model, temperature } = (body ??
+	const { name, description, systemPrompt, model, temperature, parentAgentId } = (body ??
 		{}) as {
 		name?: unknown;
 		description?: unknown;
 		systemPrompt?: unknown;
 		model?: unknown;
 		temperature?: unknown;
+		parentAgentId?: unknown;
 	};
 
 	if (typeof name !== "string" || !name.trim()) {
@@ -90,6 +91,41 @@ export async function POST(req: Request) {
 	const parsedDescription =
 		typeof description === "string" ? description.trim() : null;
 
+	let parsedParentId: string | null = null;
+	if (parentAgentId !== undefined && parentAgentId !== null) {
+		if (typeof parentAgentId !== "string" || !parentAgentId.trim()) {
+			return NextResponse.json(
+				{ error: "parentAgentId must be a non-empty string or null" },
+				{ status: 400 },
+			);
+		}
+		parsedParentId = parentAgentId.trim();
+
+		try {
+			const parentAgent = await prisma.agent.findUnique({
+				where: { id: parsedParentId },
+			});
+			if (!parentAgent) {
+				return NextResponse.json(
+					{ error: "Parent agent not found" },
+					{ status: 404 },
+				);
+			}
+			if (parentAgent.userId !== session.user.id) {
+				return NextResponse.json(
+					{ error: "Forbidden: Parent agent belongs to another user" },
+					{ status: 403 },
+				);
+			}
+		} catch (err) {
+			console.error("Failed to query parent agent:", err);
+			return NextResponse.json(
+				{ error: "Failed to query parent agent from database" },
+				{ status: 500 },
+			);
+		}
+	}
+
 	try {
 		const agent = await prisma.agent.create({
 			data: {
@@ -99,6 +135,7 @@ export async function POST(req: Request) {
 				systemPrompt: systemPrompt.trim(),
 				model: parsedModel,
 				temperature: parsedTemp,
+				parentAgentId: parsedParentId,
 			},
 		});
 		return NextResponse.json({ agent }, { status: 201 });
