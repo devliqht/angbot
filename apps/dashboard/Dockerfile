@@ -1,13 +1,7 @@
 FROM oven/bun:alpine
 WORKDIR /usr/src/app
 
-# Copy root monorepo config and lockfile
-COPY package.json bun.lock tsconfig.json ./
-
-# Copy shared packages and dashboard app
-COPY packages/database packages/database
-COPY packages/rag packages/rag
-COPY apps/dashboard apps/dashboard
+COPY . .
 
 # Install all dependencies and generate Prisma Client
 RUN bun install --frozen-lockfile
