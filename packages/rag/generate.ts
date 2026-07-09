@@ -51,7 +51,7 @@ export async function answer(
 	}
 
 	const systemInstruction = ctx.text
-		? `${baseSystemPrompt}\n\n# Reference context\nUse the context below to answer when relevant. If it does not contain the answer, say so.\n\n${ctx.text}`
+		? `${baseSystemPrompt}\n\n# Reference context\nUse the context below to help answer. If the query is unrelated to the reference context or is casual conversation/greetings, answer normally using your general knowledge without mentioning the lack of context.\n\n${ctx.text}`
 		: baseSystemPrompt;
 
 	const contents = [
