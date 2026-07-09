@@ -22,11 +22,19 @@ mock.module("@project/database", () => ({
 			findUnique: ({ where }: { where: { id: string } }) => {
 				return agentsList.find((a) => a.id === where.id) || null;
 			},
-			create: ({ data }: { data: Record<string, unknown> }) => {
+			create: ({ data }: { data: Record<string, any> }) => {
 				prismaCreatedAgent = data;
+				const parentConnect = data.parentAgent?.connect?.id;
+				const userConnect = data.user?.connect?.id;
 				return {
 					id: "new_agent_123",
-					...data,
+					name: data.name,
+					description: data.description,
+					systemPrompt: data.systemPrompt,
+					model: data.model,
+					temperature: data.temperature,
+					userId: userConnect || "user_123",
+					parentAgentId: parentConnect || null,
 					createdAt: new Date(),
 					updatedAt: new Date(),
 				};
@@ -125,7 +133,7 @@ test("POST 201 creates agent successfully", async () => {
 		systemPrompt: "Do everything",
 		model: "gemini-pro",
 		temperature: 0.5,
-		parentAgentId: null,
+		parentAgent: undefined,
 	});
 });
 
@@ -179,5 +187,5 @@ test("POST 201 creates subagent successfully", async () => {
 	expect(res.status).toBe(201);
 	const data = await res.json();
 	expect(data.agent.parentAgentId).toBe("agent_1");
-	expect(prismaCreatedAgent?.parentAgentId).toBe("agent_1");
+	expect(prismaCreatedAgent?.parentAgent?.connect?.id).toBe("agent_1");
 });

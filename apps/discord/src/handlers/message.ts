@@ -32,7 +32,12 @@ export async function handleMessage(
 		}
 
 		// Mark typing state in Discord
-		await message.channel.sendTyping();
+		if (
+			"sendTyping" in message.channel &&
+			typeof (message.channel as any).sendTyping === "function"
+		) {
+			await (message.channel as any).sendTyping();
+		}
 
 		// Compile context about the author and mentioned users
 		let userContextBlock = "# Active Discord User Details:\n";
