@@ -396,10 +396,10 @@ export default function Agents() {
 		}
 	}, [
 		viewMode,
-		subagents[0].id,
+		subagents[0]?.id,
 		parentAgents.length,
 		subagents.length,
-		parentAgents[0].id,
+		parentAgents[0]?.id,
 	]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// When switching parent in subagents mode, select first subagent
@@ -414,7 +414,7 @@ export default function Agents() {
 				setSelectedAgentId("");
 			}
 		}
-	}, [selectedParentId, viewMode, allAgents.filter]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [selectedParentId, viewMode, allAgents]);
 
 	const handleSavePrompt = async () => {
 		if (!selectedAgentId || !editedPrompt.trim()) return;
