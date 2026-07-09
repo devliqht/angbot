@@ -7,13 +7,16 @@ import discord_logo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
 
 function inviteUrl(): string {
-	const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || "1520981304022405301";
+	const clientId =
+		process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID || "1520981304022405301";
 	return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=68608&scope=bot+applications.commands`;
 }
 
 function Navbar() {
 	const { data: session } = useSession();
-	const inviteLink = session ? inviteUrl() : "/login_page?callbackUrl=/main?action=add-bot";
+	const inviteLink = session
+		? inviteUrl()
+		: "/login_page?callbackUrl=/main?action=add-bot";
 
 	return (
 		<div className="flex items-center w-full justify-between p-5 select-none">
@@ -21,7 +24,10 @@ function Navbar() {
 				<HomepageButton />
 			</div>
 			<div className="flex gap-5 items-center">
-				<Link href={inviteLink} className="cursor-pointer hover:text-[#1752F0] transition-colors text-sm font-semibold">
+				<Link
+					href={inviteLink}
+					className="cursor-pointer hover:text-[#1752F0] transition-colors text-sm font-semibold"
+				>
 					Add Bot
 				</Link>
 				{session ? (
@@ -46,7 +52,9 @@ function Navbar() {
 
 function Main() {
 	const { data: session } = useSession();
-	const inviteLink = session ? inviteUrl() : "/login_page?callbackUrl=/main?action=add-bot";
+	const inviteLink = session
+		? inviteUrl()
+		: "/login_page?callbackUrl=/main?action=add-bot";
 
 	return (
 		<div className="flex items-center select-none">
@@ -74,7 +82,9 @@ function Main() {
 							height={20}
 							alt="Discord Logo"
 						/>
-						<p className="text-xl text-white font-semibold">Add to your server</p>
+						<p className="text-xl text-white font-semibold">
+							Add to your server
+						</p>
 					</Link>
 				</div>
 			</div>

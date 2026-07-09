@@ -394,7 +394,13 @@ export default function Agents() {
 				setSelectedAgentId("");
 			}
 		}
-	}, [viewMode]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [
+		viewMode,
+		subagents[0].id,
+		parentAgents.length,
+		subagents.length,
+		parentAgents[0].id,
+	]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// When switching parent in subagents mode, select first subagent
 	useEffect(() => {
@@ -408,26 +414,21 @@ export default function Agents() {
 				setSelectedAgentId("");
 			}
 		}
-	}, [selectedParentId]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [selectedParentId, viewMode, allAgents.filter]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	const handleSavePrompt = async () => {
 		if (!selectedAgentId || !editedPrompt.trim()) return;
 		setSavingPrompt(true);
 		try {
-			const res = await fetch(
-				`/api/agents/${selectedAgentId}/system-prompt`,
-				{
-					method: "PATCH",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ systemPrompt: editedPrompt }),
-				},
-			);
+			const res = await fetch(`/api/agents/${selectedAgentId}/system-prompt`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ systemPrompt: editedPrompt }),
+			});
 			if (res.ok) {
 				setAllAgents((prev) =>
 					prev.map((a) =>
-						a.id === selectedAgentId
-							? { ...a, systemPrompt: editedPrompt }
-							: a,
+						a.id === selectedAgentId ? { ...a, systemPrompt: editedPrompt } : a,
 					),
 				);
 			} else {
@@ -444,9 +445,7 @@ export default function Agents() {
 	const handleSubagentCreated = async () => {
 		setShowAddSubagent(false);
 		const fetched = await fetchAgents();
-		const subs = fetched.filter(
-			(a) => a.parentAgentId === selectedParentId,
-		);
+		const subs = fetched.filter((a) => a.parentAgentId === selectedParentId);
 		if (subs.length > 0) {
 			setSelectedAgentId(subs[0].id);
 		}
@@ -467,8 +466,7 @@ export default function Agents() {
 	}
 
 	// Items for the dropdown depending on mode
-	const dropdownItems =
-		viewMode === "agents" ? parentAgents : subagents;
+	const dropdownItems = viewMode === "agents" ? parentAgents : subagents;
 
 	return (
 		<div className="flex h-full flex-col gap-4">
@@ -597,8 +595,7 @@ export default function Agents() {
 								type="button"
 								onClick={handleSavePrompt}
 								disabled={
-									savingPrompt ||
-									editedPrompt === activeAgent.systemPrompt
+									savingPrompt || editedPrompt === activeAgent.systemPrompt
 								}
 								className="rounded-full px-6 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#368bfe] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
 								style={{ backgroundColor: "#1752f0" }}
@@ -617,14 +614,9 @@ export default function Agents() {
 						}}
 					>
 						<div className="p-4 border-b border-[#2a2a2a]">
-							<h3 className="text-white/50 text-sm font-semibold">
-								Resources
-							</h3>
+							<h3 className="text-white/50 text-sm font-semibold">Resources</h3>
 						</div>
-						<DocumentPanel
-							key={activeAgent.id}
-							agentId={activeAgent.id}
-						/>
+						<DocumentPanel key={activeAgent.id} agentId={activeAgent.id} />
 					</div>
 				</div>
 			)}

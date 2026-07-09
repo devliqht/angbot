@@ -22,23 +22,29 @@ mock.module("@project/database", () => ({
 			findUnique: ({ where }: { where: { id: string } }) => {
 				return agentsList.find((a) => a.id === where.id) || null;
 			},
-			create: ({ data }: { data: Record<string, any> }) => {
+			create: ({ data }: { data: Record<string, unknown> }) => {
 				prismaCreatedAgent = data;
-				const parentConnect = data.parentAgent?.connect?.id;
-				const userConnect = data.user?.connect?.id;
+				const parentAgent = data.parentAgent as
+					| { connect?: { id?: string } }
+					| undefined;
+				const user = data.user as { connect?: { id?: string } } | undefined;
+				const parentConnect = parentAgent?.connect?.id;
+				const userConnect = user?.connect?.id;
 				return {
 					id: "new_agent_123",
-					name: data.name,
-					description: data.description,
-					systemPrompt: data.systemPrompt,
-					model: data.model,
-					temperature: data.temperature,
+					name: data.name as string,
+					description: data.description as string | null,
+					systemPrompt: data.systemPrompt as string,
+					model: data.model as string,
+					temperature: data.temperature as number | null,
 					userId: userConnect || "user_123",
 					parentAgentId: parentConnect || null,
 					createdAt: new Date(),
-					updatedAt: new Date(),
 				};
 			},
+		},
+		agentCall: {
+			groupBy: () => [],
 		},
 	},
 }));
@@ -70,7 +76,9 @@ test("GET returns agents belonging to user", async () => {
 	const res = await GET();
 	expect(res.status).toBe(200);
 	const data = await res.json();
-	expect(data.agents).toEqual(agentsList);
+	expect(data.agents).toEqual(
+		agentsList.map((a) => ({ ...a, invocations: 0, tokensUsed: 0 })),
+	);
 });
 
 test("POST 401 when unauthorized", async () => {

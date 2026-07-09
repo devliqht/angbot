@@ -172,7 +172,7 @@ export async function PATCH(
 	}
 
 	const { parentAgentId: newParentId, ...scalarUpdates } = dataToUpdate;
-	const prismaData: any = { ...scalarUpdates };
+	const prismaData = { ...scalarUpdates } as Record<string, unknown>;
 	if (newParentId !== undefined) {
 		if (newParentId === null) {
 			prismaData.parentAgent = { disconnect: true };

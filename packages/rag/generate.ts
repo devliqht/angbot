@@ -114,7 +114,7 @@ export async function answer(
 		while (attempts < maxAttempts) {
 			const res = await genai().models.generateContent({
 				model: agent.model,
-				contents: contents as any,
+				contents: contents as unknown as Array<Record<string, unknown>>,
 				config,
 			});
 

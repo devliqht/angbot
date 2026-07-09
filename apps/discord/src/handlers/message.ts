@@ -34,9 +34,12 @@ export async function handleMessage(
 		// Mark typing state in Discord
 		if (
 			"sendTyping" in message.channel &&
-			typeof (message.channel as any).sendTyping === "function"
+			typeof (message.channel as unknown as { sendTyping: () => Promise<void> })
+				.sendTyping === "function"
 		) {
-			await (message.channel as any).sendTyping();
+			await (
+				message.channel as unknown as { sendTyping: () => Promise<void> }
+			).sendTyping();
 		}
 
 		// Compile context about the author and mentioned users

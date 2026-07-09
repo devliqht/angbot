@@ -39,7 +39,10 @@ function AgentCard({ agent }: { agent: ContextAgent }) {
 function CreateAgentModal({
 	onClose,
 	onCreated,
-}: { onClose: () => void; onCreated: () => void }) {
+}: {
+	onClose: () => void;
+	onCreated: () => void;
+}) {
 	const [name, setName] = useState("");
 	const [systemPrompt, setSystemPrompt] = useState("");
 	const [error, setError] = useState<string | null>(null);
@@ -145,7 +148,7 @@ export default function Dashboard() {
 				const data = await res.json();
 				// Filter to only top-level agents (no parentAgentId)
 				const topLevel = (data.agents ?? []).filter(
-					(a: any) => !a.parentAgentId,
+					(a: ContextAgent) => !a.parentAgentId,
 				);
 				setAllAgents(topLevel);
 			}
@@ -156,9 +159,10 @@ export default function Dashboard() {
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fetchAllAgents is intentionally only called once on mount
 	useEffect(() => {
 		fetchAllAgents();
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, []);
 
 	if (!serverContext) {
 		return <h1>Error in finding server context: try reloading the website</h1>;

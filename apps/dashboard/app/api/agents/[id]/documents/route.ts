@@ -18,7 +18,9 @@ export async function GET(
 
 	try {
 		// Verify agent exists and belongs to user
-		console.log(`[DEBUG] documents route agentId: ${agentId}, session userId: ${session.user.id}`);
+		console.log(
+			`[DEBUG] documents route agentId: ${agentId}, session userId: ${session.user.id}`,
+		);
 		const agent = await prisma.agent.findUnique({
 			where: { id: agentId },
 		});

@@ -75,7 +75,11 @@ export default function Main_Page() {
 				const invite = `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${DISCORD_BOT_PERMISSIONS}&scope=bot+applications.commands`;
 
 				// Clean up the URL query parameters
-				window.history.replaceState({}, document.title, window.location.pathname);
+				window.history.replaceState(
+					{},
+					document.title,
+					window.location.pathname,
+				);
 
 				// Redirect to the Discord bot invite URL
 				window.location.href = invite;

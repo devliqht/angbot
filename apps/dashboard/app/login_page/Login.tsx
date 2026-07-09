@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import discordLogo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
 

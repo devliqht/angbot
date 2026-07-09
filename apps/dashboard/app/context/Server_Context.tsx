@@ -8,6 +8,7 @@ export interface ContextAgent {
 	description: string | null;
 	invocations: number;
 	tokensUsed: number;
+	parentAgentId?: string | null;
 }
 
 export interface ServerData {

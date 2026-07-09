@@ -209,11 +209,13 @@ test("PATCH 403 when parent agent belongs to other user", async () => {
 test("PATCH 200 updates parentAgentId successfully", async () => {
 	const res = await callPatch("agent_123", { parentAgentId: "parent_123" });
 	expect(res.status).toBe(200);
-	expect(prismaUpdates).toEqual({ parentAgentId: "parent_123" });
+	expect(prismaUpdates).toEqual({
+		parentAgent: { connect: { id: "parent_123" } },
+	});
 });
 
 test("PATCH 200 clears parentAgentId successfully", async () => {
 	const res = await callPatch("agent_123", { parentAgentId: null });
 	expect(res.status).toBe(200);
-	expect(prismaUpdates).toEqual({ parentAgentId: null });
+	expect(prismaUpdates).toEqual({ parentAgent: { disconnect: true } });
 });
