@@ -171,10 +171,20 @@ export async function PATCH(
 		return NextResponse.json({ message: "No updates were provided" });
 	}
 
+	const { parentAgentId: newParentId, ...scalarUpdates } = dataToUpdate;
+	const prismaData: any = { ...scalarUpdates };
+	if (newParentId !== undefined) {
+		if (newParentId === null) {
+			prismaData.parentAgent = { disconnect: true };
+		} else {
+			prismaData.parentAgent = { connect: { id: newParentId } };
+		}
+	}
+
 	try {
 		const updatedAgent = await prisma.agent.update({
 			where: { id: agentId },
-			data: dataToUpdate,
+			data: prismaData,
 		});
 		return NextResponse.json({ agent: updatedAgent });
 	} catch (err) {

@@ -1,10 +1,14 @@
 "use client";
 import Image from "next/image";
 import { signIn } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import discordLogo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
 
 export default function Login() {
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl") || "/main";
+
 	return (
 		<div className="flex h-screen items-center justify-center bg-[#1E1E1E]">
 			<div
@@ -22,7 +26,7 @@ export default function Login() {
 				</p>
 				<button
 					type="button"
-					onClick={() => signIn("discord", { callbackUrl: "/main" })}
+					onClick={() => signIn("discord", { callbackUrl })}
 					className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#1752f0] py-4 text-base font-semibold text-white transition-colors duration-150 hover:bg-[#368bfe] active:scale-95 cursor-pointer"
 				>
 					<Image src={discordLogo} width={30} height={30} alt="Discord" />

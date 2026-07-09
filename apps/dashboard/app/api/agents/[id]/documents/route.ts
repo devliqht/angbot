@@ -18,11 +18,14 @@ export async function GET(
 
 	try {
 		// Verify agent exists and belongs to user
+		console.log(`[DEBUG] documents route agentId: ${agentId}, session userId: ${session.user.id}`);
 		const agent = await prisma.agent.findUnique({
 			where: { id: agentId },
 		});
+		console.log(`[DEBUG] found agent: ${JSON.stringify(agent)}`);
 
 		if (!agent) {
+			console.log("[DEBUG] agent was null, returning 404");
 			return NextResponse.json({ error: "Agent not found" }, { status: 404 });
 		}
 
