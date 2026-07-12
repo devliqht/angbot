@@ -149,7 +149,12 @@ export async function handleInteraction(
 			return;
 		}
 
-		if (interaction.commandName === "agent") {
+		if (
+			interaction.commandName === "agent" ||
+			interaction.commandName === "subagent"
+		) {
+			const isSubagentCmd = interaction.commandName === "subagent";
+
 			// 1. Verify user is administrator
 			if (
 				!interaction.memberPermissions?.has(PermissionFlagsBits.Administrator)
@@ -179,18 +184,20 @@ export async function handleInteraction(
 				return;
 			}
 
-			// 3. Fetch user's agents
+			// 3. Fetch user's agents (filter by parentAgentId null status)
 			const agents = await prisma.agent.findMany({
 				where: {
 					userId: account.userId,
+					parentAgentId: isSubagentCmd ? { not: null } : null,
 				},
 				orderBy: { name: "asc" },
 			});
 
 			if (agents.length === 0) {
 				await interaction.reply({
-					content:
-						"You haven't created any agents in the dashboard yet. Please go to the dashboard to create one!",
+					content: isSubagentCmd
+						? "You haven't created any subagents in the dashboard yet. Please go to the dashboard to create one!"
+						: "You haven't created any global agents in the dashboard yet. Please go to the dashboard to create one!",
 					ephemeral: true,
 				});
 				return;
@@ -198,8 +205,12 @@ export async function handleInteraction(
 
 			// 4. Create Select Menu
 			const selectMenu = new StringSelectMenuBuilder()
-				.setCustomId("select_agent")
-				.setPlaceholder("Select an AI agent to bind to this channel")
+				.setCustomId(isSubagentCmd ? "select_subagent" : "select_global_agent")
+				.setPlaceholder(
+					isSubagentCmd
+						? "Select a subagent to bind to this channel"
+						: "Select a global AI agent to bind to this server",
+				)
 				.addOptions(
 					agents.map((agent) => ({
 						label: agent.name || "Unnamed agent",
@@ -213,15 +224,20 @@ export async function handleInteraction(
 			);
 
 			await interaction.reply({
-				content:
-					"Choose an agent from the dropdown below to handle messages in this channel:",
+				content: isSubagentCmd
+					? "Choose a subagent from the dropdown below to handle messages in this channel:"
+					: "Choose a global agent from the dropdown below to handle messages for this server:",
 				components: [row],
 				ephemeral: true,
 			});
 			return;
 		}
 	} else if (interaction.isStringSelectMenu()) {
-		if (interaction.customId === "select_agent") {
+		if (
+			interaction.customId === "select_global_agent" ||
+			interaction.customId === "select_subagent"
+		) {
+			const isSubagentMenu = interaction.customId === "select_subagent";
 			const agentId = interaction.values[0];
 			if (!agentId) return;
 
@@ -259,12 +275,15 @@ export async function handleInteraction(
 					return;
 				}
 
+				// If it's a global agent, bind to channelId = ""
+				const targetChannelId = isSubagentMenu ? interaction.channelId : "";
+
 				// Upsert Discord binding for this guild and channel
 				await prisma.discordBinding.upsert({
 					where: {
 						guildId_channelId: {
 							guildId: interaction.guildId,
-							channelId: interaction.channelId,
+							channelId: targetChannelId,
 						},
 					},
 					update: {
@@ -273,14 +292,16 @@ export async function handleInteraction(
 					},
 					create: {
 						guildId: interaction.guildId,
-						channelId: interaction.channelId,
+						channelId: targetChannelId,
 						agentId,
 						createdBy: interaction.user.id,
 					},
 				});
 
 				await interaction.reply({
-					content: `Success! The active agent for this channel has been set to **${agent.name}**.`,
+					content: isSubagentMenu
+						? `Success! The active subagent for this channel has been set to **${agent.name}**.`
+						: `Success! The active global agent for this server has been set to **${agent.name}**.`,
 					ephemeral: true,
 				});
 			} catch (err) {
