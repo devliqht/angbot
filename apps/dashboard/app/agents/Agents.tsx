@@ -327,15 +327,13 @@ export default function Agents() {
 	useEffect(() => {
 		fetchAgents().then((fetched) => {
 			const parents = fetched.filter((a) => !a.parentAgentId);
-			if (parents.length > 0 && !selectedAgentId) {
+			if (parents.length > 0) {
+				setSelectedParentId(parents[0].id);
 				setSelectedAgentId(parents[0].id);
 				setEditedPrompt(parents[0].systemPrompt);
 			}
-			if (parents.length > 0 && !selectedParentId) {
-				setSelectedParentId(parents[0].id);
-			}
 		});
-	}, [fetchAgents, selectedAgentId, selectedParentId]);
+	}, [fetchAgents]);
 
 	// Derived lists
 	const parentAgents = allAgents.filter((a) => !a.parentAgentId);
@@ -354,41 +352,30 @@ export default function Agents() {
 		}
 	}, [selectedAgentId, allAgents]);
 
-	// When switching view mode, set appropriate default selection
+	// Manage selected agent ID based on view mode and parent ID changes, without resetting active selections
 	useEffect(() => {
+		const parentAgentsList = allAgents.filter((a) => !a.parentAgentId);
 		if (viewMode === "agents") {
-			if (parentAgents.length > 0) {
-				setSelectedAgentId(parentAgents[0].id);
+			if (parentAgentsList.length > 0) {
+				const isCurrentAgentParent = parentAgentsList.some((a) => a.id === selectedAgentId);
+				if (!isCurrentAgentParent) {
+					setSelectedAgentId(parentAgentsList[0].id);
+				}
 			}
 		} else {
-			// Subagents mode: select the first subagent of the current parent
-			if (subagents.length > 0) {
-				setSelectedAgentId(subagents[0].id);
-			} else {
-				setSelectedAgentId("");
-			}
-		}
-	}, [
-		viewMode,
-		subagents[0]?.id,
-		parentAgents.length,
-		subagents.length,
-		parentAgents[0]?.id,
-	]); // eslint-disable-line react-hooks/exhaustive-deps
-
-	// When switching parent in subagents mode, select first subagent
-	useEffect(() => {
-		if (viewMode === "subagents") {
-			const subs = allAgents.filter(
+			const subagentsList = allAgents.filter(
 				(a) => a.parentAgentId === selectedParentId,
 			);
-			if (subs.length > 0) {
-				setSelectedAgentId(subs[0].id);
+			if (subagentsList.length > 0) {
+				const isCurrentAgentSub = subagentsList.some((a) => a.id === selectedAgentId);
+				if (!isCurrentAgentSub) {
+					setSelectedAgentId(subagentsList[0].id);
+				}
 			} else {
 				setSelectedAgentId("");
 			}
 		}
-	}, [selectedParentId, viewMode, allAgents]);
+	}, [viewMode, selectedParentId, allAgents]);
 
 	const handleSavePrompt = async () => {
 		if (!selectedAgentId || !editedPrompt.trim()) return;
