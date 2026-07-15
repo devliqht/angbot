@@ -35,7 +35,7 @@ function AgentCard({ agent }: { agent: ContextAgent }) {
 				<CollapsibleTrigger asChild>
 					<button
 						type="button"
-						className="w-full text-left p-5 transition-colors hover:bg-accent/50 rounded-t-lg"
+						className="w-full text-left p-5 transition-colors rounded-t-lg"
 						aria-expanded={expanded}
 						aria-label={`${agent.name} agent details`}
 					>
