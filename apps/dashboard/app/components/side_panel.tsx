@@ -1,5 +1,9 @@
+"use client";
+
 import { useContext } from "react";
 import { MainContext } from "../context/Main_Context";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import HomepageButton from "./homepage_button";
 import LogoutButton from "./logout_button";
 
@@ -13,29 +17,43 @@ export default function SidePanel() {
 	const { currentPage, setCurrentPage } = context;
 
 	return (
-		<div className="flex flex-col items-center h-screen w-[80px] md:w-[200px] lg:w-[250px] flex-shrink-0 p-2 border-r gap-10">
+		<aside
+			aria-label="Sidebar navigation"
+			className="flex flex-col items-center h-screen w-[80px] md:w-[200px] lg:w-[250px] flex-shrink-0 p-2 border-r gap-10"
+		>
 			<div>
 				<HomepageButton />
 			</div>
-			<div className="flex flex-col gap-3 h-full">
-				<button
-					type="button"
-					className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === "Dashboard" ? "bg-[#202127]" : "bg-[#1b1b1f]"}`}
+			<nav aria-label="Dashboard sections" className="flex flex-col gap-1 h-full w-full">
+				<Button
+					variant="ghost"
 					onClick={() => setCurrentPage("Dashboard")}
+					aria-current={currentPage === "Dashboard" ? "page" : undefined}
+					className={`w-full justify-start pe-20 text-[1.4rem] h-auto py-1 ${
+						currentPage === "Dashboard"
+							? "bg-accent"
+							: ""
+					}`}
 				>
-					<h2 className="text-[1.4rem]">Dashboard</h2>
-				</button>
-				<button
-					type="button"
-					className={`w-full p-1 pe-20 rounded text-left cursor-pointer hover:bg-[#202127] ${currentPage === "Subagents" ? "bg-[#202127]" : "bg-[#1b1b1f]"}`}
+					Dashboard
+				</Button>
+				<Button
+					variant="ghost"
 					onClick={() => setCurrentPage("Subagents")}
+					aria-current={currentPage === "Subagents" ? "page" : undefined}
+					className={`w-full justify-start pe-20 text-[1.4rem] h-auto py-1 ${
+						currentPage === "Subagents"
+							? "bg-accent"
+							: ""
+					}`}
 				>
-					<h2 className="text-[1.4rem]">Subagents</h2>
-				</button>
-			</div>
+					Subagents
+				</Button>
+			</nav>
+			<Separator />
 			<div className="w-full flex justify-start mt-2 ms-10 mb-5">
 				<LogoutButton />
 			</div>
-		</div>
+		</aside>
 	);
 }

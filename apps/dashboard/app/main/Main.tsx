@@ -1,12 +1,25 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { FaUserCircle } from "react-icons/fa";
+import { User } from "lucide-react";
 import Agents from "../agents/Agents";
 import SidePanel from "../components/side_panel";
 import { MainContext } from "../context/Main_Context";
 import { ServerContext } from "../context/Server_Context";
 import Dashboard from "../dashboard/Dashboard";
 import Profile from "../profile/Profile";
+import { Button } from "@/components/ui/button";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function Header({ currPage }: { currPage: string }) {
 	const serverContext = useContext(ServerContext);
@@ -30,33 +43,55 @@ function Header({ currPage }: { currPage: string }) {
 			</div>
 			<div className="flex items-center gap-3 h-full">
 				{currPage !== "Profile" && mounted && (
-					<div>
-						<select
-							value={currentServerId}
-							onChange={(e) => setCurrentServerId(e.target.value)}
-							disabled={servers.length === 0}
-							className="text-white rounded-lg px-3 py-3 outline-none cursor-pointer font-bold text-right"
+					<Select
+						value={currentServerId}
+						onValueChange={setCurrentServerId}
+						disabled={servers.length === 0}
+					>
+						<SelectTrigger
+							className="w-auto min-w-[180px] font-bold text-right border-none bg-transparent"
+							aria-label="Select server"
 						>
+							<SelectValue placeholder="No servers configured" />
+						</SelectTrigger>
+						<SelectContent>
 							{servers.length === 0 ? (
-								<option value="">No servers configured</option>
+								<SelectItem value="" disabled>
+									No servers configured
+								</SelectItem>
 							) : (
 								servers.map((server) => (
-									<option key={server.id} value={server.id}>
+									<SelectItem key={server.id} value={server.id}>
 										{server.name}
-									</option>
+									</SelectItem>
 								))
 							)}
-						</select>
-					</div>
+						</SelectContent>
+					</Select>
 				)}
-				<div>
-					<FaUserCircle
-						className="w-10 h-10 text-white cursor-pointer hover:text-gray-300 transition-colors duration-150"
-						onClick={() =>
-							setCurrentPage(currPage === "Profile" ? "Dashboard" : "Profile")
-						}
-					/>
-				</div>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="ghost"
+							size="icon"
+							onClick={() =>
+								setCurrentPage(
+									currPage === "Profile" ? "Dashboard" : "Profile",
+								)
+							}
+							aria-label={
+								currPage === "Profile"
+									? "Go to Dashboard"
+									: "Go to Profile"
+							}
+						>
+							<User className="w-6 h-6" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>{currPage === "Profile" ? "Dashboard" : "Profile"}</p>
+					</TooltipContent>
+				</Tooltip>
 			</div>
 		</div>
 	);
@@ -95,14 +130,14 @@ export default function Main_Page() {
 		<div className="h-screen flex items-center justify-center overflow-hidden">
 			<SidePanel />
 			<div className="h-screen flex-1 flex flex-col">
-				<div className="flex items-center w-full h-[7%] min-h-[60px] px-6 flex-shrink-0 border-b border-gray-800">
+				<header className="flex items-center w-full h-[7%] min-h-[60px] px-6 flex-shrink-0 border-b border-border">
 					<Header currPage={currentPage} />
-				</div>
-				<div className="flex-1 overflow-y-auto p-6">
+				</header>
+				<main className="flex-1 overflow-y-auto p-6">
 					{currentPage === "Dashboard" && <Dashboard />}
 					{currentPage === "Subagents" && <Agents />}
 					{currentPage === "Profile" && <Profile />}
-				</div>
+				</main>
 			</div>
 		</div>
 	);

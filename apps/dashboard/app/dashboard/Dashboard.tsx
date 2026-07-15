@@ -3,44 +3,72 @@
 import { useContext, useEffect, useState } from "react";
 import CreateFirstAgent from "../components/create_first_agent";
 import { type ContextAgent, ServerContext } from "../context/Server_Context";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 
 function AgentCard({ agent }: { agent: ContextAgent }) {
 	const [expanded, setExpanded] = useState(false);
 
 	return (
-		<div className="bg-[#202127] p-5 rounded">
-			<button
-				type="button"
-				onClick={() => setExpanded(!expanded)}
-				className="w-full text-left cursor-pointer transition-colors"
-			>
-				<h1 className="text-left">{agent.name}</h1>
-			</button>
-			<div
-				className={`transition-all duration-300 ease-in-out overflow-hidden ${expanded ? "max-h-40 opacity-100 mt-5" : "max-h-0 opacity-0"}`}
-			>
-				<div className="flex px-10 pb-5 pt-5 border-t">
-					<div className="w-full">
-						<h1 className="text-white/50 text-s">Invocations</h1>
-						<h3 className="text-2xl">{agent.invocations}</h3>
+		<Card>
+			<Collapsible open={expanded} onOpenChange={setExpanded}>
+				<CollapsibleTrigger asChild>
+					<button
+						type="button"
+						className="w-full text-left p-5 transition-colors hover:bg-accent/50 rounded-t-lg"
+						aria-expanded={expanded}
+						aria-label={`${agent.name} agent details`}
+					>
+						<span className="font-medium">{agent.name}</span>
+					</button>
+				</CollapsibleTrigger>
+				<CollapsibleContent>
+					<Separator />
+					<div className="flex px-10 pb-5 pt-5">
+						<div className="w-full">
+							<p className="text-muted-foreground text-sm">Invocations</p>
+							<p className="text-2xl font-semibold">{agent.invocations}</p>
+						</div>
+						<div className="w-full">
+							<p className="text-muted-foreground text-sm">Tokens Used</p>
+							<p className="text-2xl font-semibold">
+								{(agent.tokensUsed / 1000).toFixed(1)}k
+							</p>
+						</div>
 					</div>
-					<div className="w-full">
-						<h1 className="text-white/50 text-s">Tokens Used</h1>
-						<h3 className="text-2xl">
-							{(agent.tokensUsed / 1000).toFixed(1)}k
-						</h3>
-					</div>
-				</div>
-			</div>
-		</div>
+				</CollapsibleContent>
+			</Collapsible>
+		</Card>
 	);
 }
 
 function CreateAgentModal({
-	onClose,
+	open,
+	onOpenChange,
 	onCreated,
 }: {
-	onClose: () => void;
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
 	onCreated: () => void;
 }) {
 	const [name, setName] = useState("");
@@ -73,7 +101,9 @@ function CreateAgentModal({
 				throw new Error(errData.error || "Failed to create agent");
 			}
 			onCreated();
-			onClose();
+			onOpenChange(false);
+			setName("");
+			setSystemPrompt("");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
@@ -82,56 +112,53 @@ function CreateAgentModal({
 	};
 
 	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-			<div
-				className="w-full max-w-md p-6 rounded-2xl"
-				style={{ backgroundColor: "#202127", border: "1px solid #2a2a2a" }}
-			>
-				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-xl font-bold text-white">Create New Agent</h2>
-					<button
-						type="button"
-						onClick={onClose}
-						className="text-gray-400 hover:text-white transition-colors text-xl cursor-pointer"
-					>
-						✕
-					</button>
-				</div>
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Create New Agent</DialogTitle>
+				</DialogHeader>
+				<form
+					onSubmit={handleSubmit}
+					className="flex flex-col gap-4"
+					aria-label="Create new agent form"
+				>
 					<div className="flex flex-col gap-1.5">
-						<label className="text-xs text-gray-400 font-semibold uppercase flex flex-col gap-1.5">
-							Agent Name
-							<input
-								type="text"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
-								placeholder="e.g. Science Tutor, Help Desk"
-								className="bg-[#2a2a2a] text-sm text-white px-4 py-2.5 rounded-lg outline-none border border-transparent focus:border-[#1752f0] font-normal normal-case"
-							/>
-						</label>
+						<Label htmlFor="modal-agent-name">Agent Name</Label>
+						<Input
+							id="modal-agent-name"
+							type="text"
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							placeholder="e.g. Science Tutor, Help Desk"
+							aria-required="true"
+						/>
 					</div>
 					<div className="flex flex-col gap-1.5">
-						<label className="text-xs text-gray-400 font-semibold uppercase flex flex-col gap-1.5">
-							System Prompt
-							<textarea
-								value={systemPrompt}
-								onChange={(e) => setSystemPrompt(e.target.value)}
-								className="bg-[#2a2a2a] text-sm text-white px-4 py-2.5 rounded-lg outline-none border border-transparent focus:border-[#1752f0] h-32 resize-none font-normal normal-case"
-								placeholder="Tell the AI how to behave..."
-							/>
-						</label>
+						<Label htmlFor="modal-system-prompt">System Prompt</Label>
+						<Textarea
+							id="modal-system-prompt"
+							value={systemPrompt}
+							onChange={(e) => setSystemPrompt(e.target.value)}
+							className="h-32 resize-none"
+							placeholder="Tell the AI how to behave..."
+							aria-required="true"
+						/>
 					</div>
-					{error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-					<button
+					{error && (
+						<p role="alert" className="text-xs text-destructive mt-1">
+							{error}
+						</p>
+					)}
+					<Button
 						type="submit"
 						disabled={submitting}
-						className="mt-2 rounded-full bg-[#1752f0] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#368bfe] disabled:opacity-50 transition-colors cursor-pointer"
+						className="mt-2 rounded-full px-6"
 					>
 						{submitting ? "Creating..." : "Create Agent"}
-					</button>
+					</Button>
 				</form>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 }
 
@@ -165,13 +192,21 @@ export default function Dashboard() {
 	}, []);
 
 	if (!serverContext) {
-		return <h1>Error in finding server context: try reloading the website</h1>;
+		return (
+			<p role="alert">
+				Error in finding server context: try reloading the website
+			</p>
+		);
 	}
 
 	const { loading, currentServer } = serverContext;
 
 	if (loading || loadingAgents) {
-		return <div>Loading...</div>;
+		return (
+			<div aria-live="polite" className="text-muted-foreground">
+				Loading...
+			</div>
+		);
 	}
 
 	// If the user has absolutely 0 agents, show the onboarding first agent flow
@@ -205,73 +240,72 @@ export default function Dashboard() {
 	const displayedAgents = allAgents;
 
 	return (
-		<div className="">
-			<div>
-				<div className="flex gap-6 mb-8 select-none">
-					<div className="flex flex-col bg-[#202127] p-6 rounded-2xl flex-1 h-36">
-						<div className="w-full">
-							<h1 className="text-white/50 text-xs font-bold uppercase tracking-wider">
-								Total Agents
-							</h1>
-						</div>
-						<div className="flex-1 flex items-center justify-center">
-							<h3 className="text-5xl font-semibold text-white">
-								{totalAgentsCount}
-							</h3>
-						</div>
-					</div>
-					<div className="flex flex-col bg-[#202127] p-6 rounded-2xl flex-1 h-36">
-						<div className="w-full">
-							<h1 className="text-white/50 text-xs font-bold uppercase tracking-wider">
-								Total Tokens
-							</h1>
-						</div>
-						<div className="flex-1 flex items-center justify-center">
-							<h3 className="text-5xl font-semibold text-white">
-								{(tokenCount / 1000).toFixed(1)}k
-							</h3>
-						</div>
-					</div>
-					<div className="flex flex-col bg-[#202127] p-6 rounded-2xl flex-1 h-36">
-						<div className="w-full">
-							<h1 className="text-white/50 text-xs font-bold uppercase tracking-wider">
-								Total Invocations
-							</h1>
-						</div>
-						<div className="flex-1 flex items-center justify-center">
-							<h3 className="text-5xl font-semibold text-white">
-								{invocationCount.toLocaleString()}
-							</h3>
-						</div>
-					</div>
-				</div>
+		<section aria-label="Dashboard overview">
+			<div className="flex gap-6 mb-8 select-none" role="group" aria-label="Statistics">
+				<Card className="flex-1 h-36">
+					<CardHeader className="pb-0">
+						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+							Total Agents
+						</p>
+					</CardHeader>
+					<CardContent className="flex-1 flex items-center justify-center">
+						<p className="text-5xl font-semibold">{totalAgentsCount}</p>
+					</CardContent>
+				</Card>
+				<Card className="flex-1 h-36">
+					<CardHeader className="pb-0">
+						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+							Total Tokens
+						</p>
+					</CardHeader>
+					<CardContent className="flex-1 flex items-center justify-center">
+						<p className="text-5xl font-semibold">
+							{(tokenCount / 1000).toFixed(1)}k
+						</p>
+					</CardContent>
+				</Card>
+				<Card className="flex-1 h-36">
+					<CardHeader className="pb-0">
+						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
+							Total Invocations
+						</p>
+					</CardHeader>
+					<CardContent className="flex-1 flex items-center justify-center">
+						<p className="text-5xl font-semibold">
+							{invocationCount.toLocaleString()}
+						</p>
+					</CardContent>
+				</Card>
 			</div>
 
 			<div className="flex items-center justify-between mb-3">
-				<h2 className="text-white/50 text-xs font-bold uppercase tracking-wider">
+				<h2 className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
 					Your Agents
 				</h2>
-				<button
-					type="button"
+				<Button
 					onClick={() => setShowCreateModal(true)}
-					className="rounded-full bg-[#1752f0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#368bfe] transition-colors cursor-pointer flex items-center gap-1.5"
+					className="rounded-full"
 				>
-					<span className="text-lg leading-none">+</span> New Agent
-				</button>
+					<span className="text-lg leading-none" aria-hidden="true">
+						+
+					</span>{" "}
+					New Agent
+				</Button>
 			</div>
 
-			<div className="flex flex-col gap-3">
+			<div className="flex flex-col gap-3" role="list" aria-label="Agent list">
 				{displayedAgents.map((agent) => (
-					<AgentCard key={agent.id} agent={agent} />
+					<div key={agent.id} role="listitem">
+						<AgentCard agent={agent} />
+					</div>
 				))}
 			</div>
 
-			{showCreateModal && (
-				<CreateAgentModal
-					onClose={() => setShowCreateModal(false)}
-					onCreated={fetchAllAgents}
-				/>
-			)}
-		</div>
+			<CreateAgentModal
+				open={showCreateModal}
+				onOpenChange={setShowCreateModal}
+				onCreated={fetchAllAgents}
+			/>
+		</section>
 	);
 }
