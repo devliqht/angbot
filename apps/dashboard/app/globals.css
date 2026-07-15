@@ -6,31 +6,31 @@
 
 :root {
 	/* Angbot dark theme — always dark, no light mode */
-	--background: oklch(0.17 0.005 285);    /* #1b1b1f */
-	--foreground: oklch(0.985 0 0);          /* white */
-	--card: oklch(0.2 0.005 280);            /* #202127 */
+	--background: oklch(0.17 0.005 285); /* #1b1b1f */
+	--foreground: oklch(0.985 0 0); /* white */
+	--card: oklch(0.2 0.005 280); /* #202127 */
 	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.2 0.005 280);         /* #202127 */
+	--popover: oklch(0.2 0.005 280); /* #202127 */
 	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.48 0.2 264);          /* #1752F0 */
-	--primary-foreground: oklch(0.985 0 0);  /* white */
-	--secondary: oklch(0.23 0.005 280);      /* #2a2a2a */
+	--primary: oklch(0.48 0.2 264); /* #1752F0 */
+	--primary-foreground: oklch(0.985 0 0); /* white */
+	--secondary: oklch(0.23 0.005 280); /* #2a2a2a */
 	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.23 0.005 280);          /* #2a2a2a */
-	--muted-foreground: oklch(0.6 0 0);      /* gray-400ish */
-	--accent: oklch(0.23 0.005 280);         /* #2a2a2a */
+	--muted: oklch(0.23 0.005 280); /* #2a2a2a */
+	--muted-foreground: oklch(0.6 0 0); /* gray-400ish */
+	--accent: oklch(0.23 0.005 280); /* #2a2a2a */
 	--accent-foreground: oklch(0.985 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.26 0.005 280);         /* #2a2a2a */
-	--input: oklch(0.26 0.005 280);          /* #2a2a2a */
-	--ring: oklch(0.48 0.2 264);             /* #1752F0 — focus ring matches primary */
+	--border: oklch(0.26 0.005 280); /* #2a2a2a */
+	--input: oklch(0.26 0.005 280); /* #2a2a2a */
+	--ring: oklch(0.48 0.2 264); /* #1752F0 — focus ring matches primary */
 	--chart-1: oklch(0.48 0.2 264);
 	--chart-2: oklch(0.6 0.15 264);
 	--chart-3: oklch(0.439 0 0);
 	--chart-4: oklch(0.371 0 0);
 	--chart-5: oklch(0.269 0 0);
 	--radius: 0.625rem;
-	--sidebar: oklch(0.17 0.005 285);        /* same as background */
+	--sidebar: oklch(0.17 0.005 285); /* same as background */
 	--sidebar-foreground: oklch(0.985 0 0);
 	--sidebar-primary: oklch(0.48 0.2 264);
 	--sidebar-primary-foreground: oklch(0.985 0 0);
@@ -91,7 +91,8 @@
 		@apply bg-background text-foreground;
 		font-family: Tahoma, sans-serif;
 	}
-	button:not(:disabled), [role="button"]:not(:disabled) {
+	button:not(:disabled),
+	[role="button"]:not(:disabled) {
 		cursor: pointer;
 	}
 	html {

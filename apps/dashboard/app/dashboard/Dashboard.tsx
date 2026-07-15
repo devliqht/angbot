@@ -1,10 +1,8 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import CreateFirstAgent from "../components/create_first_agent";
-import { type ContextAgent, ServerContext } from "../context/Server_Context";
-import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Collapsible,
@@ -21,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import CreateFirstAgent from "../components/create_first_agent";
+import { type ContextAgent, ServerContext } from "../context/Server_Context";
 
 function AgentCard({
 	agent,

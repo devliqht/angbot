@@ -1,12 +1,6 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
 import { User } from "lucide-react";
-import Agents from "../agents/Agents";
-import SidePanel from "../components/side_panel";
-import { MainContext } from "../context/Main_Context";
-import { ServerContext } from "../context/Server_Context";
-import Dashboard from "../dashboard/Dashboard";
-import Profile from "../profile/Profile";
+import { useContext, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Select,
@@ -20,6 +14,12 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Agents from "../agents/Agents";
+import SidePanel from "../components/side_panel";
+import { MainContext } from "../context/Main_Context";
+import { ServerContext } from "../context/Server_Context";
+import Dashboard from "../dashboard/Dashboard";
+import Profile from "../profile/Profile";
 
 function Header({ currPage }: { currPage: string }) {
 	const serverContext = useContext(ServerContext);
