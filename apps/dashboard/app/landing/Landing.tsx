@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 import HomepageButton from "../components/homepage_button";
 import discord_logo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
@@ -19,88 +20,90 @@ function Navbar() {
 		: "/login_page?callbackUrl=/main?action=add-bot";
 
 	return (
-		<div className="flex items-center w-full justify-between p-5 select-none">
+		<nav
+			aria-label="Main navigation"
+			className="flex items-center w-full justify-between p-5 select-none"
+		>
 			<div className="flex">
 				<HomepageButton />
 			</div>
 			<div className="flex gap-5 items-center">
-				<Link
-					href={inviteLink}
-					className="cursor-pointer hover:text-[#1752F0] transition-colors text-sm font-semibold"
-				>
-					Add Bot
-				</Link>
+				<Button variant="ghost" asChild>
+					<Link
+						href={inviteLink}
+						className="text-sm font-semibold hover:text-primary transition-colors"
+					>
+						Add Bot
+					</Link>
+				</Button>
 				{session ? (
-					<Link
-						href="/main"
-						className="bg-[#1752F0] p-1 px-4 py-2 rounded-full cursor-pointer text-white text-sm font-semibold flex items-center justify-center hover:bg-[#368bfe] transition-colors"
-					>
-						Dashboard
-					</Link>
+					<Button asChild className="rounded-full px-4 py-2">
+						<Link href="/main">Dashboard</Link>
+					</Button>
 				) : (
-					<Link
-						href="/login_page"
-						className="bg-[#1752F0] p-1 px-4 py-2 rounded-full cursor-pointer text-white text-sm font-semibold flex items-center justify-center hover:bg-[#368bfe] transition-colors"
-					>
-						Login
-					</Link>
+					<Button asChild className="rounded-full px-4 py-2">
+						<Link href="/login_page">Login</Link>
+					</Button>
 				)}
 			</div>
-		</div>
+		</nav>
 	);
 }
 
-function Main() {
+function HeroSection() {
 	const { data: session } = useSession();
 	const inviteLink = session
 		? inviteUrl()
 		: "/login_page?callbackUrl=/main?action=add-bot";
 
 	return (
-		<div className="flex items-center select-none">
+		<section aria-labelledby="hero-heading" className="flex items-center select-none">
 			<div>
-				<Image src={logo} width={320} height={320} alt="Angbot Logo" />
+				<Image
+					src={logo}
+					width={320}
+					height={320}
+					alt=""
+					aria-hidden="true"
+					priority
+				/>
 			</div>
 			<div className="flex flex-col gap-3">
-				<div>
-					<h1 className="text-7xl font-black">Angbot</h1>
-				</div>
-				<div>
-					<h2 className="text-4xl">
-						Your study buddy, on{" "}
-						<span className="text-[#7289DA]">Discord!</span>
-					</h2>
-				</div>
+				<h1 id="hero-heading" className="text-7xl font-black">
+					Angbot
+				</h1>
+				<h2 className="text-4xl">
+					Your study buddy, on{" "}
+					<span className="text-[#7289DA]">Discord!</span>
+				</h2>
 				<div className="mt-2">
-					<Link
-						href={inviteLink}
-						className="inline-flex items-center gap-3 bg-[#1752F0] px-5 py-2.5 rounded-full cursor-pointer hover:bg-[#368bfe] transition-all duration-150 transform hover:scale-105"
-					>
-						<Image
-							src={discord_logo}
-							width={30}
-							height={20}
-							alt="Discord Logo"
-						/>
-						<p className="text-xl text-white font-semibold">
-							Add to your server
-						</p>
-					</Link>
+					<Button asChild size="lg" className="rounded-full gap-3 px-5 py-2.5 hover:scale-105 transition-all duration-150">
+						<Link href={inviteLink}>
+							<Image
+								src={discord_logo}
+								width={30}
+								height={20}
+								alt=""
+								aria-hidden="true"
+							/>
+							<span className="text-xl font-semibold">Add to your server</span>
+						</Link>
+					</Button>
 				</div>
 			</div>
-		</div>
+		</section>
 	);
 }
 
 export default function Landing() {
 	return (
 		<div className="h-screen relative">
-			<div className="absolute top-0 left-0 w-full">
+			<div className="absolute top-0 left-0 w-full z-10">
 				<Navbar />
 			</div>
-			<div className="h-full flex items-center justify-center">
-				<Main />
-			</div>
+			<main className="h-full flex items-center justify-center">
+				<HeroSection />
+			</main>
 		</div>
 	);
 }

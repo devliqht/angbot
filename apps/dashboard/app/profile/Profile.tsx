@@ -3,22 +3,18 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
 import { ServerContext } from "../context/Server_Context";
+import {
+	Avatar,
+	AvatarFallback,
+	AvatarImage,
+} from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const DISCORD_BOT_PERMISSIONS = 68608; // View Channels, Send Messages, Read Message History
 
 function inviteUrl(clientId: string): string {
 	return `https://discord.com/oauth2/authorize?client_id=${clientId}&permissions=${DISCORD_BOT_PERMISSIONS}&scope=bot+applications.commands`;
-}
-
-function UserCircleIcon() {
-	return (
-		<svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-			<title>User Profile Icon</title>
-			<circle cx="40" cy="40" r="40" fill="#202127" />
-			<circle cx="40" cy="30" r="14" fill="#3a3a3a" />
-			<ellipse cx="40" cy="72" rx="24" ry="18" fill="#3a3a3a" />
-		</svg>
-	);
 }
 
 function ServerIcon({
@@ -28,25 +24,15 @@ function ServerIcon({
 	name: string;
 	iconUrl: string | null;
 }) {
-	if (iconUrl) {
-		return (
-			<Image
-				src={iconUrl}
-				alt=""
-				width={40}
-				height={40}
-				className="h-10 w-10 shrink-0 rounded-full object-cover"
-			/>
-		);
-	}
-
 	return (
-		<div
-			className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-bold text-white"
-			style={{ backgroundColor: "#1752f0" }}
-		>
-			{name.charAt(0).toUpperCase()}
-		</div>
+		<Avatar className="h-10 w-10">
+			{iconUrl ? (
+				<AvatarImage src={iconUrl} alt={`${name} server icon`} />
+			) : null}
+			<AvatarFallback className="bg-primary text-primary-foreground text-base font-bold">
+				{name.charAt(0).toUpperCase()}
+			</AvatarFallback>
+		</Avatar>
 	);
 }
 
@@ -62,66 +48,68 @@ export default function Profile() {
 	const clientId = process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
 
 	return (
-		<div className="flex flex-col">
+		<section aria-label="User profile" className="flex flex-col">
 			<div className="mb-8 flex items-center gap-5">
-				{session?.user?.image ? (
-					<Image
-						src={session.user.image}
-						alt=""
-						width={80}
-						height={80}
-						className="h-20 w-20 rounded-full object-cover"
-					/>
-				) : (
-					<UserCircleIcon />
-				)}
-				<h1 className="text-3xl font-bold text-white">
+				<Avatar className="h-20 w-20">
+					{session?.user?.image ? (
+						<AvatarImage
+							src={session.user.image}
+							alt={`${session.user.name || "User"}'s profile picture`}
+						/>
+					) : null}
+					<AvatarFallback className="text-2xl font-bold">
+						{session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+					</AvatarFallback>
+				</Avatar>
+				<h2 className="text-3xl font-bold">
 					{session?.user?.name ?? "Loading..."}
-				</h1>
+				</h2>
 			</div>
 
 			<div>
-				<p className="mb-3 text-xs font-medium uppercase tracking-wide text-gray-500">
+				<p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
 					Discord Servers
 				</p>
 
-				<div className="flex max-w-[700px] flex-col gap-2">
+				<div
+					className="flex max-w-[700px] flex-col gap-2"
+					role="list"
+					aria-label="Discord servers"
+				>
 					{loading && (
-						<p className="text-sm text-gray-500">Loading servers...</p>
+						<p className="text-sm text-muted-foreground" aria-live="polite">
+							Loading servers...
+						</p>
 					)}
 					{!loading && servers.length === 0 && (
-						<p className="text-sm text-gray-500">
+						<p className="text-sm text-muted-foreground">
 							No Discord servers configured yet.
 						</p>
 					)}
 					{servers.map((server) => (
-						<div
-							key={server.id}
-							className="flex items-center gap-4 rounded-lg border px-5 py-4"
-							style={{
-								backgroundColor: "#202127",
-								borderColor: "#2a2a2a",
-							}}
-						>
-							<ServerIcon name={server.name} iconUrl={server.iconUrl} />
-							<span className="text-sm font-medium text-white">
-								{server.name}
-							</span>
-						</div>
+						<Card key={server.id} role="listitem">
+							<CardContent className="flex items-center gap-4 py-4">
+								<ServerIcon name={server.name} iconUrl={server.iconUrl} />
+								<span className="text-sm font-medium">
+									{server.name}
+								</span>
+							</CardContent>
+						</Card>
 					))}
 				</div>
 
 				{clientId && (
-					<a
-						href={inviteUrl(clientId)}
-						target="_blank"
-						rel="noopener noreferrer"
-						className="mt-5 inline-block rounded-full bg-[#1752f0] px-5 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#368bfe]"
-					>
-						Add Server
-					</a>
+					<Button asChild className="mt-5 rounded-full px-5">
+						<a
+							href={inviteUrl(clientId)}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							Add Server
+						</a>
+					</Button>
 				)}
 			</div>
-		</div>
+		</section>
 	);
 }

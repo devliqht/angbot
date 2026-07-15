@@ -2,6 +2,14 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import discordLogo from "../images/discord_logo.png";
 import logo from "../images/logo_final.png";
 
@@ -10,34 +18,48 @@ export default function Login() {
 	const callbackUrl = searchParams.get("callbackUrl") || "/main";
 
 	return (
-		<div className="flex h-screen items-center justify-center bg-[#1E1E1E]">
-			<div
-				className="flex w-full max-w-[420px] flex-col items-center rounded-2xl px-10 py-12"
-				style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}
-			>
-				<div className="mb-2 flex items-center gap-3">
-					<Image src={logo} width={100} height={100} alt="Angbot" />
-					<h1 className="text-3xl font-black tracking-tight text-white">
-						Angbot
-					</h1>
-				</div>
-				<p className="mb-10 text-center text-sm text-[#7c7c7c]">
-					Your Discord AI assistant dashboard
-				</p>
-				<button
-					type="button"
-					onClick={() => signIn("discord", { callbackUrl })}
-					className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#1752f0] py-4 text-base font-semibold text-white transition-colors duration-150 hover:bg-[#368bfe] active:scale-95 cursor-pointer"
-				>
-					<Image src={discordLogo} width={30} height={30} alt="Discord" />
-					Login with Discord
-				</button>
-				<p className="mt-6 text-center text-xs text-[#7c7c7c]">
-					By continuing, you authorize Angbot to access
-					<br />
-					your Discord account information.
-				</p>
-			</div>
-		</div>
+		<main className="flex h-screen items-center justify-center">
+			<Card className="w-full max-w-[420px] border-none shadow-[0_8px_32px_rgba(0,0,0,0.6)]">
+				<CardHeader className="flex flex-col items-center text-center px-10 pt-12">
+					<div className="mb-2 flex items-center gap-3">
+						<Image
+							src={logo}
+							width={100}
+							height={100}
+							alt=""
+							aria-hidden="true"
+						/>
+						<CardTitle className="text-3xl font-black tracking-tight">
+							Angbot
+						</CardTitle>
+					</div>
+					<CardDescription>
+						Your Discord AI assistant dashboard
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="flex flex-col items-center px-10 pb-12">
+					<Button
+						size="lg"
+						onClick={() => signIn("discord", { callbackUrl })}
+						aria-label="Login with your Discord account"
+						className="flex w-full items-center justify-center gap-3 rounded-lg py-4 text-base font-semibold active:scale-95 h-auto"
+					>
+						<Image
+							src={discordLogo}
+							width={30}
+							height={30}
+							alt=""
+							aria-hidden="true"
+						/>
+						Login with Discord
+					</Button>
+					<p className="mt-6 text-center text-xs text-muted-foreground">
+						By continuing, you authorize Angbot to access
+						<br />
+						your Discord account information.
+					</p>
+				</CardContent>
+			</Card>
+		</main>
 	);
 }
