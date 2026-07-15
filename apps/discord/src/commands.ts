@@ -27,4 +27,10 @@ export const commands = [
 		.setDescription(
 			"View active agent bindings and telemetry for this channel/server.",
 		),
+	new SlashCommandBuilder()
+		.setName("editagent")
+		.setDescription(
+			"Edit the name, description, or system prompt of an agent or subagent.",
+		)
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 ].map((command) => command.toJSON());

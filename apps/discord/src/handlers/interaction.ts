@@ -7,11 +7,25 @@ import {
 	StringSelectMenuBuilder,
 } from "discord.js";
 import { clearMemory } from "../memory";
+import {
+	EDIT_AGENT_SELECT_ID,
+	handleEditAgentCommand,
+	handleEditAgentModalSubmit,
+	handleEditAgentSelect,
+	isEditAgentModal,
+} from "./editAgent";
 
 export async function handleInteraction(
 	client: Client,
 	interaction: Interaction,
 ): Promise<void> {
+	if (interaction.isModalSubmit()) {
+		if (isEditAgentModal(interaction.customId)) {
+			await handleEditAgentModalSubmit(interaction);
+		}
+		return;
+	}
+
 	if (interaction.isChatInputCommand()) {
 		if (interaction.commandName === "hermes") {
 			await interaction.reply("Hermes is Hermesing!");
@@ -149,6 +163,11 @@ export async function handleInteraction(
 			return;
 		}
 
+		if (interaction.commandName === "editagent") {
+			await handleEditAgentCommand(interaction);
+			return;
+		}
+
 		if (
 			interaction.commandName === "agent" ||
 			interaction.commandName === "subagent"
@@ -233,6 +252,11 @@ export async function handleInteraction(
 			return;
 		}
 	} else if (interaction.isStringSelectMenu()) {
+		if (interaction.customId === EDIT_AGENT_SELECT_ID) {
+			await handleEditAgentSelect(interaction);
+			return;
+		}
+
 		if (
 			interaction.customId === "select_global_agent" ||
 			interaction.customId === "select_subagent"
