@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Trash2, Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -308,6 +308,107 @@ export default function Agents() {
 	// Add subagent dialog
 	const [showAddSubagent, setShowAddSubagent] = useState(false);
 
+	// Subagent rename / delete operations
+	const [renamingAgent, setRenamingAgent] = useState<AgentFromAPI | null>(null);
+	const [renameNewName, setRenameNewName] = useState("");
+	const [renaming, setRenaming] = useState(false);
+	const [confirmModal, setConfirmModal] = useState<{
+		type: "delete" | "rename";
+		title: string;
+		entityName: string;
+		targetName?: string;
+		countdown: number;
+		onExecute: () => Promise<void>;
+	} | null>(null);
+
+	useEffect(() => {
+		if (confirmModal === null) return;
+		if (confirmModal.countdown === 0) {
+			confirmModal.onExecute();
+			setConfirmModal(null);
+			return;
+		}
+		const timer = setTimeout(() => {
+			setConfirmModal((prev) =>
+				prev !== null ? { ...prev, countdown: prev.countdown - 1 } : null,
+			);
+		}, 1000);
+		return () => clearTimeout(timer);
+	}, [confirmModal]);
+
+	const handleDeleteSubagent = async () => {
+		if (!selectedAgentId) return;
+		try {
+			const res = await fetch(`/api/agents/${selectedAgentId}`, {
+				method: "DELETE",
+			});
+			if (res.ok) {
+				await fetchAgents();
+			} else {
+				alert("Failed to delete subagent");
+			}
+		} catch (err) {
+			console.error("Delete error:", err);
+		}
+	};
+
+	const handleRenameSubagent = async () => {
+		if (!renamingAgent || !renameNewName.trim()) return;
+		setRenaming(true);
+		try {
+			const res = await fetch(`/api/agents/${renamingAgent.id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: renameNewName.trim() }),
+			});
+			if (res.ok) {
+				setRenamingAgent(null);
+				await fetchAgents();
+			} else {
+				alert("Failed to rename subagent");
+			}
+		} catch (err) {
+			console.error("Rename error:", err);
+		} finally {
+			setRenaming(false);
+		}
+	};
+
+	const triggerDeleteSubagent = () => {
+		const currentAgent = allAgents.find((a) => a.id === selectedAgentId);
+		if (!currentAgent) return;
+		setConfirmModal({
+			type: "delete",
+			title: "Confirm Deletion",
+			entityName: currentAgent.name,
+			countdown: 5,
+			onExecute: handleDeleteSubagent,
+		});
+	};
+
+	const triggerRenameSubagentSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!renamingAgent || !renameNewName.trim()) return;
+		const trimmedName = renameNewName.trim();
+		if (trimmedName === renamingAgent.name) {
+			setRenamingAgent(null);
+			return;
+		}
+		const originalName = renamingAgent.name;
+		// Keep the state of renamingAgent for handleRenameSubagent execution
+		setConfirmModal({
+			type: "rename",
+			title: "Confirm Rename",
+			entityName: originalName,
+			targetName: trimmedName,
+			countdown: 5,
+			onExecute: async () => {
+				await handleRenameSubagent();
+			},
+		});
+		setRenamingAgent(null);
+	};
+
 	const fetchAgents = useCallback(async () => {
 		try {
 			const res = await fetch("/api/agents");
@@ -436,93 +537,142 @@ export default function Agents() {
 	return (
 		<section aria-label="Agent management" className="flex h-full flex-col gap-4">
 			{/* Top bar: mode toggle + agent selector */}
-			<div className="flex items-center gap-4" role="toolbar" aria-label="Agent controls">
-				{/* Mode toggle */}
-				<div
-					className="flex rounded-lg overflow-hidden border border-border"
-					role="group"
-					aria-label="View mode"
-				>
-					<Button
-						variant={viewMode === "agents" ? "default" : "secondary"}
-						onClick={() => setViewMode("agents")}
-						className="rounded-none"
-						aria-pressed={viewMode === "agents"}
+			<div className="flex items-center justify-between w-full gap-4" role="toolbar" aria-label="Agent controls">
+				<div className="flex items-center gap-4">
+					{/* Mode toggle */}
+					<div
+						className="flex rounded-lg overflow-hidden border border-border"
+						role="group"
+						aria-label="View mode"
 					>
-						Agents
-					</Button>
-					<Button
-						variant={viewMode === "subagents" ? "default" : "secondary"}
-						onClick={() => setViewMode("subagents")}
-						className="rounded-none"
-						aria-pressed={viewMode === "subagents"}
-					>
-						Subagents
-					</Button>
+						<Button
+							variant={viewMode === "agents" ? "default" : "secondary"}
+							onClick={() => setViewMode("agents")}
+							className="rounded-none"
+							aria-pressed={viewMode === "agents"}
+						>
+							Agents
+						</Button>
+						<Button
+							variant={viewMode === "subagents" ? "default" : "secondary"}
+							onClick={() => setViewMode("subagents")}
+							className="rounded-none"
+							aria-pressed={viewMode === "subagents"}
+						>
+							Subagents
+						</Button>
+					</div>
+
+					{/* Parent selector (only in subagents mode) */}
+					{viewMode === "subagents" && (
+						<>
+							<span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
+								Parent
+							</span>
+							<Select
+								value={selectedParentId}
+								onValueChange={setSelectedParentId}
+							>
+								<SelectTrigger
+									className="w-auto min-w-[160px] border-border"
+									aria-label="Select parent agent"
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{parentAgents.map((a) => (
+										<SelectItem key={a.id} value={a.id}>
+											{a.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</>
+					)}
+
+					{/* Agent/Subagent selector */}
+					{dropdownItems.length > 0 && (
+						<div className="flex items-center gap-2">
+							<Select
+								value={selectedAgentId}
+								onValueChange={setSelectedAgentId}
+							>
+								<SelectTrigger
+									className="w-auto min-w-[160px] border-border cursor-pointer"
+									aria-label={
+										viewMode === "agents" ? "Select agent" : "Select subagent"
+									}
+									onDoubleClick={() => {
+										const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
+										if (agentToRename) {
+											setRenamingAgent(agentToRename);
+											setRenameNewName(agentToRename.name);
+										}
+									}}
+								>
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									{dropdownItems.map((a) => (
+										<SelectItem
+											key={a.id}
+											value={a.id}
+											onDoubleClick={(e) => {
+												e.stopPropagation();
+												setRenamingAgent(a);
+												setRenameNewName(a.name);
+											}}
+										>
+											{a.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Button
+								variant="ghost"
+								size="icon-sm"
+								className="h-8 w-8 text-muted-foreground hover:text-white cursor-pointer"
+								onClick={() => {
+									const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
+									if (agentToRename) {
+										setRenamingAgent(agentToRename);
+										setRenameNewName(agentToRename.name);
+									}
+								}}
+								aria-label={`Rename selected ${viewMode === "agents" ? "agent" : "subagent"}`}
+							>
+								<Edit className="h-4 w-4" />
+							</Button>
+						</div>
+					)}
+
+					{/* Add subagent button (only in subagents mode) */}
+					{viewMode === "subagents" && (
+						<Button
+							onClick={() => setShowAddSubagent(true)}
+							className="rounded-full"
+						>
+							<span className="text-lg leading-none" aria-hidden="true">
+								+
+							</span>{" "}
+							Add Subagent
+						</Button>
+					)}
 				</div>
 
-				{/* Parent selector (only in subagents mode) */}
-				{viewMode === "subagents" && (
-					<>
-						<span className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">
-							Parent
-						</span>
-						<Select
-							value={selectedParentId}
-							onValueChange={setSelectedParentId}
+				{/* Delete Subagent button at the rightmost part of the row */}
+				{viewMode === "subagents" && selectedAgentId && (
+					<div>
+						<Button
+							variant="destructive"
+							onClick={triggerDeleteSubagent}
+							className="cursor-pointer"
+							aria-label="Delete selected subagent"
 						>
-							<SelectTrigger
-								className="w-auto min-w-[160px] border-border"
-								aria-label="Select parent agent"
-							>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								{parentAgents.map((a) => (
-									<SelectItem key={a.id} value={a.id}>
-										{a.name}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-					</>
-				)}
-
-				{/* Agent/Subagent selector */}
-				{dropdownItems.length > 0 && (
-					<Select
-						value={selectedAgentId}
-						onValueChange={setSelectedAgentId}
-					>
-						<SelectTrigger
-							className="w-auto min-w-[160px] border-border"
-							aria-label={
-								viewMode === "agents" ? "Select agent" : "Select subagent"
-							}
-						>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{dropdownItems.map((a) => (
-								<SelectItem key={a.id} value={a.id}>
-									{a.name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				)}
-
-				{/* Add subagent button (only in subagents mode) */}
-				{viewMode === "subagents" && (
-					<Button
-						onClick={() => setShowAddSubagent(true)}
-						className="rounded-full"
-					>
-						<span className="text-lg leading-none" aria-hidden="true">
-							+
-						</span>{" "}
-						Add Subagent
-					</Button>
+							<Trash2 className="h-4 w-4 mr-1.5" />
+							Delete Subagent
+						</Button>
+					</div>
 				)}
 			</div>
 
@@ -595,6 +745,72 @@ export default function Agents() {
 				onOpenChange={setShowAddSubagent}
 				onCreated={handleSubagentCreated}
 			/>
+
+			{/* Rename Dialog */}
+			<Dialog open={!!renamingAgent} onOpenChange={(open) => !open && setRenamingAgent(null)}>
+				<DialogContent className="bg-[#202127] border border-[#2a2a2a] text-white">
+					<DialogHeader>
+						<DialogTitle className="text-white font-bold">Rename {renamingAgent?.parentAgentId ? "Subagent" : "Agent"}</DialogTitle>
+					</DialogHeader>
+					<form onSubmit={triggerRenameSubagentSubmit} className="flex flex-col gap-4">
+						<div className="flex flex-col gap-1.5">
+							<Label htmlFor="rename-name" className="text-gray-400">New Name</Label>
+							<Input
+								id="rename-name"
+								value={renameNewName}
+								onChange={(e) => setRenameNewName(e.target.value)}
+								autoFocus
+								disabled={renaming}
+								className="bg-[#2a2a2a] border-transparent focus:border-[#1752f0] text-white"
+							/>
+						</div>
+						<div className="flex justify-end gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								className="bg-transparent border-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white"
+								onClick={() => setRenamingAgent(null)}
+								disabled={renaming}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={renaming}>
+								Confirm
+							</Button>
+						</div>
+					</form>
+				</DialogContent>
+			</Dialog>
+
+			{/* Confirmation Dialog with Countdown Timer */}
+			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
+					<DialogHeader>
+						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
+					</DialogHeader>
+					<div className="py-4 text-sm text-gray-300">
+						{confirmModal?.type === "delete" ? (
+							<p>
+								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
+							</p>
+						) : (
+							<p>
+								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
+							</p>
+						)}
+					</div>
+					<div className="flex justify-end gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							className="bg-transparent border-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white"
+							onClick={() => setConfirmModal(null)}
+						>
+							Cancel
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</section>
 	);
 }

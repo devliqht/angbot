@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from "react";
 import CreateFirstAgent from "../components/create_first_agent";
 import { type ContextAgent, ServerContext } from "../context/Server_Context";
 import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import {
 	Card,
 	CardContent,
@@ -26,22 +27,154 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-function AgentCard({ agent }: { agent: ContextAgent }) {
+function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () => void }) {
 	const [expanded, setExpanded] = useState(false);
+	const [isEditing, setIsEditing] = useState(false);
+	const [newName, setNewName] = useState(agent.name);
+	const [renaming, setRenaming] = useState(false);
+	const [confirmModal, setConfirmModal] = useState<{
+		type: "delete" | "rename";
+		title: string;
+		entityName: string;
+		targetName?: string;
+		countdown: number;
+		onExecute: () => Promise<void>;
+	} | null>(null);
+
+	useEffect(() => {
+		if (confirmModal === null) return;
+		if (confirmModal.countdown === 0) {
+			confirmModal.onExecute();
+			setConfirmModal(null);
+			return;
+		}
+		const timer = setTimeout(() => {
+			setConfirmModal((prev) =>
+				prev !== null ? { ...prev, countdown: prev.countdown - 1 } : null,
+			);
+		}, 1000);
+		return () => clearTimeout(timer);
+	}, [confirmModal]);
+
+	const handleDelete = async () => {
+		try {
+			const res = await fetch(`/api/agents/${agent.id}`, {
+				method: "DELETE",
+			});
+			if (res.ok) {
+				onRefresh();
+			} else {
+				alert("Failed to delete agent");
+			}
+		} catch (err) {
+			console.error("Delete error:", err);
+		}
+	};
+
+	const handleRename = async () => {
+		setRenaming(true);
+		try {
+			const res = await fetch(`/api/agents/${agent.id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ name: newName.trim() }),
+			});
+			if (res.ok) {
+				setIsEditing(false);
+				onRefresh();
+			} else {
+				alert("Failed to rename agent");
+			}
+		} catch (err) {
+			console.error("Rename error:", err);
+		} finally {
+			setRenaming(false);
+		}
+	};
+
+	const triggerDelete = () => {
+		setConfirmModal({
+			type: "delete",
+			title: "Confirm Deletion",
+			entityName: agent.name,
+			countdown: 5,
+			onExecute: handleDelete,
+		});
+	};
+
+	const triggerRename = (e: React.FormEvent) => {
+		e.preventDefault();
+		const trimmedName = newName.trim();
+		if (!trimmedName || trimmedName === agent.name) return;
+		setIsEditing(false);
+		setConfirmModal({
+			type: "rename",
+			title: "Confirm Rename",
+			entityName: agent.name,
+			targetName: trimmedName,
+			countdown: 5,
+			onExecute: handleRename,
+		});
+	};
 
 	return (
 		<Card>
 			<Collapsible open={expanded} onOpenChange={setExpanded}>
-				<CollapsibleTrigger asChild>
-					<button
-						type="button"
-						className="w-full text-left p-5 transition-colors rounded-t-lg"
-						aria-expanded={expanded}
-						aria-label={`${agent.name} agent details`}
-					>
-						<span className="font-medium">{agent.name}</span>
-					</button>
-				</CollapsibleTrigger>
+				<div className="flex w-full items-center justify-between p-5 pr-6 rounded-t-lg select-none">
+					{isEditing ? (
+						<form onSubmit={triggerRename} className="flex items-center gap-2 flex-1 mr-4" onClick={(e) => e.stopPropagation()}>
+							<Input
+								value={newName}
+								onChange={(e) => setNewName(e.target.value)}
+								className="h-8 max-w-[240px] bg-background text-sm"
+								autoFocus
+								disabled={renaming}
+							/>
+							<Button type="submit" size="xs" disabled={renaming}>
+								Confirm
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								size="xs"
+								onClick={() => {
+									setIsEditing(false);
+									setNewName(agent.name);
+								}}
+								disabled={renaming}
+							>
+								Cancel
+							</Button>
+						</form>
+					) : (
+						<CollapsibleTrigger asChild>
+							<button
+								type="button"
+								className="flex-grow text-left transition-colors cursor-pointer font-medium"
+								aria-expanded={expanded}
+								aria-label={`${agent.name} agent details`}
+								onDoubleClick={(e) => {
+									e.stopPropagation();
+									setIsEditing(true);
+								}}
+							>
+								{agent.name}
+							</button>
+						</CollapsibleTrigger>
+					)}
+
+					<div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8 cursor-pointer"
+							onClick={triggerDelete}
+							aria-label={`Delete ${agent.name}`}
+						>
+							<Trash2 className="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
 				<CollapsibleContent>
 					<Separator />
 					<div className="flex px-10 pb-5 pt-5">
@@ -58,6 +191,35 @@ function AgentCard({ agent }: { agent: ContextAgent }) {
 					</div>
 				</CollapsibleContent>
 			</Collapsible>
+
+			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
+					<DialogHeader>
+						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
+					</DialogHeader>
+					<div className="py-4 text-sm text-gray-300">
+						{confirmModal?.type === "delete" ? (
+							<p>
+								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
+							</p>
+						) : (
+							<p>
+								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
+							</p>
+						)}
+					</div>
+					<div className="flex justify-end gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							className="bg-transparent border-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white"
+							onClick={() => setConfirmModal(null)}
+						>
+							Cancel
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</Card>
 	);
 }
@@ -296,7 +458,7 @@ export default function Dashboard() {
 			<div className="flex flex-col gap-3" role="list" aria-label="Agent list">
 				{displayedAgents.map((agent) => (
 					<div key={agent.id} role="listitem">
-						<AgentCard agent={agent} />
+						<AgentCard agent={agent} onRefresh={fetchAllAgents} />
 					</div>
 				))}
 			</div>
