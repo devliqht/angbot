@@ -2,6 +2,7 @@ import { prisma } from "@project/database";
 import { answer } from "@project/rag";
 import type { Client, Message } from "discord.js";
 import { getMemory, pushMemory } from "../memory";
+import { splitMessage } from "../splitMessage";
 
 export async function handleMessage(
 	client: Client,
@@ -123,8 +124,30 @@ export async function handleMessage(
 
 		const latencyMs = Date.now() - startTime;
 
-		// Send the reply back to the Discord channel
-		await message.reply(responseText);
+		// Send the reply back to the Discord channel, splitting into multiple
+		// messages if it exceeds Discord's 2000-character limit (keeping any
+		// ``` code blocks intact across the split).
+		const chunks = splitMessage(responseText);
+		const [firstChunk, ...restChunks] = chunks;
+		if (firstChunk !== undefined) {
+			await message.reply(firstChunk);
+		}
+		for (const chunk of restChunks) {
+			if (
+				"send" in message.channel &&
+				typeof (
+					message.channel as unknown as {
+						send: (content: string) => Promise<unknown>;
+					}
+				).send === "function"
+			) {
+				await (
+					message.channel as unknown as {
+						send: (content: string) => Promise<unknown>;
+					}
+				).send(chunk);
+			}
+		}
 
 		// Log the call telemetry inside AgentCall table
 		await prisma.agentCall.create({
