@@ -75,14 +75,10 @@ function Header({ currPage }: { currPage: string }) {
 							variant="ghost"
 							size="icon"
 							onClick={() =>
-								setCurrentPage(
-									currPage === "Profile" ? "Dashboard" : "Profile",
-								)
+								setCurrentPage(currPage === "Profile" ? "Dashboard" : "Profile")
 							}
 							aria-label={
-								currPage === "Profile"
-									? "Go to Dashboard"
-									: "Go to Profile"
+								currPage === "Profile" ? "Go to Dashboard" : "Go to Profile"
 							}
 						>
 							<User className="w-6 h-6" />

@@ -134,7 +134,10 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 				aria-label="Uploaded documents"
 			>
 				{loading ? (
-					<p className="text-muted-foreground text-sm text-center py-4" aria-live="polite">
+					<p
+						className="text-muted-foreground text-sm text-center py-4"
+						aria-live="polite"
+					>
 						Loading documents...
 					</p>
 				) : documents.length === 0 ? (
@@ -148,10 +151,11 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 							role="listitem"
 							className="flex items-center gap-3 rounded-md px-3 py-2 group bg-muted"
 						>
-							<FileText className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-							<span className="truncate text-sm flex-1">
-								{doc.filename}
-							</span>
+							<FileText
+								className="h-4 w-4 shrink-0 text-muted-foreground"
+								aria-hidden="true"
+							/>
+							<span className="truncate text-sm flex-1">{doc.filename}</span>
 							<Badge variant={doc.status === "READY" ? "secondary" : "outline"}>
 								{doc.status === "READY"
 									? `${doc.chunkCount} chunks`
@@ -458,7 +462,9 @@ export default function Agents() {
 		const parentAgentsList = allAgents.filter((a) => !a.parentAgentId);
 		if (viewMode === "agents") {
 			if (parentAgentsList.length > 0) {
-				const isCurrentAgentParent = parentAgentsList.some((a) => a.id === selectedAgentId);
+				const isCurrentAgentParent = parentAgentsList.some(
+					(a) => a.id === selectedAgentId,
+				);
 				if (!isCurrentAgentParent) {
 					setSelectedAgentId(parentAgentsList[0].id);
 				}
@@ -468,7 +474,9 @@ export default function Agents() {
 				(a) => a.parentAgentId === selectedParentId,
 			);
 			if (subagentsList.length > 0) {
-				const isCurrentAgentSub = subagentsList.some((a) => a.id === selectedAgentId);
+				const isCurrentAgentSub = subagentsList.some(
+					(a) => a.id === selectedAgentId,
+				);
 				if (!isCurrentAgentSub) {
 					setSelectedAgentId(subagentsList[0].id);
 				}
@@ -535,9 +543,16 @@ export default function Agents() {
 	const dropdownItems = viewMode === "agents" ? parentAgents : subagents;
 
 	return (
-		<section aria-label="Agent management" className="flex h-full flex-col gap-4">
+		<section
+			aria-label="Agent management"
+			className="flex h-full flex-col gap-4"
+		>
 			{/* Top bar: mode toggle + agent selector */}
-			<div className="flex items-center justify-between w-full gap-4" role="toolbar" aria-label="Agent controls">
+			<div
+				className="flex items-center justify-between w-full gap-4"
+				role="toolbar"
+				aria-label="Agent controls"
+			>
 				<div className="flex items-center gap-4">
 					{/* Mode toggle */}
 					<div
@@ -603,7 +618,9 @@ export default function Agents() {
 										viewMode === "agents" ? "Select agent" : "Select subagent"
 									}
 									onDoubleClick={() => {
-										const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
+										const agentToRename = dropdownItems.find(
+											(a) => a.id === selectedAgentId,
+										);
 										if (agentToRename) {
 											setRenamingAgent(agentToRename);
 											setRenameNewName(agentToRename.name);
@@ -633,7 +650,9 @@ export default function Agents() {
 								size="icon-sm"
 								className="h-8 w-8 text-muted-foreground hover:text-white cursor-pointer"
 								onClick={() => {
-									const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
+									const agentToRename = dropdownItems.find(
+										(a) => a.id === selectedAgentId,
+									);
 									if (agentToRename) {
 										setRenamingAgent(agentToRename);
 										setRenameNewName(agentToRename.name);
@@ -680,8 +699,8 @@ export default function Agents() {
 			{viewMode === "subagents" && subagents.length === 0 && (
 				<div className="flex flex-1 items-center justify-center">
 					<p className="text-muted-foreground text-sm">
-						No subagents for this agent yet. Click &quot;+ Add Subagent&quot; to create
-						one.
+						No subagents for this agent yet. Click &quot;+ Add Subagent&quot; to
+						create one.
 					</p>
 				</div>
 			)}
@@ -747,14 +766,24 @@ export default function Agents() {
 			/>
 
 			{/* Rename Dialog */}
-			<Dialog open={!!renamingAgent} onOpenChange={(open) => !open && setRenamingAgent(null)}>
+			<Dialog
+				open={!!renamingAgent}
+				onOpenChange={(open) => !open && setRenamingAgent(null)}
+			>
 				<DialogContent className="bg-[#202127] border border-[#2a2a2a] text-white">
 					<DialogHeader>
-						<DialogTitle className="text-white font-bold">Rename {renamingAgent?.parentAgentId ? "Subagent" : "Agent"}</DialogTitle>
+						<DialogTitle className="text-white font-bold">
+							Rename {renamingAgent?.parentAgentId ? "Subagent" : "Agent"}
+						</DialogTitle>
 					</DialogHeader>
-					<form onSubmit={triggerRenameSubagentSubmit} className="flex flex-col gap-4">
+					<form
+						onSubmit={triggerRenameSubagentSubmit}
+						className="flex flex-col gap-4"
+					>
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="rename-name" className="text-gray-400">New Name</Label>
+							<Label htmlFor="rename-name" className="text-gray-400">
+								New Name
+							</Label>
 							<Input
 								id="rename-name"
 								value={renameNewName}
@@ -783,19 +812,44 @@ export default function Agents() {
 			</Dialog>
 
 			{/* Confirmation Dialog with Countdown Timer */}
-			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+			<Dialog
+				open={confirmModal !== null}
+				onOpenChange={(open) => !open && setConfirmModal(null)}
+			>
 				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
 					<DialogHeader>
-						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
+						<DialogTitle className="text-white font-bold">
+							{confirmModal?.title}
+						</DialogTitle>
 					</DialogHeader>
 					<div className="py-4 text-sm text-gray-300">
 						{confirmModal?.type === "delete" ? (
 							<p>
-								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
+								Are you sure you wanna delete{" "}
+								<span className="font-semibold text-white">
+									{confirmModal.entityName}
+								</span>
+								? Deleting in{" "}
+								<span className="font-mono text-red-500 font-semibold">
+									{confirmModal.countdown}
+								</span>{" "}
+								...
 							</p>
 						) : (
 							<p>
-								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
+								Are you sure you wanna rename{" "}
+								<span className="font-semibold text-white">
+									{confirmModal?.entityName}
+								</span>{" "}
+								to{" "}
+								<span className="font-semibold text-white">
+									{confirmModal?.targetName}
+								</span>
+								? Changing in{" "}
+								<span className="font-mono text-[#1752F0] font-semibold">
+									{confirmModal?.countdown}
+								</span>{" "}
+								...
 							</p>
 						)}
 					</div>

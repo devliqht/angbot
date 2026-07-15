@@ -24,15 +24,16 @@ export default function SidePanel() {
 			<div>
 				<HomepageButton />
 			</div>
-			<nav aria-label="Dashboard sections" className="flex flex-col gap-1 h-full w-full">
+			<nav
+				aria-label="Dashboard sections"
+				className="flex flex-col gap-1 h-full w-full"
+			>
 				<Button
 					variant="ghost"
 					onClick={() => setCurrentPage("Dashboard")}
 					aria-current={currentPage === "Dashboard" ? "page" : undefined}
 					className={`w-full justify-start pe-20 text-[1.4rem] h-auto py-1 ${
-						currentPage === "Dashboard"
-							? "bg-accent"
-							: ""
+						currentPage === "Dashboard" ? "bg-accent" : ""
 					}`}
 				>
 					Dashboard
@@ -42,9 +43,7 @@ export default function SidePanel() {
 					onClick={() => setCurrentPage("Subagents")}
 					aria-current={currentPage === "Subagents" ? "page" : undefined}
 					className={`w-full justify-start pe-20 text-[1.4rem] h-auto py-1 ${
-						currentPage === "Subagents"
-							? "bg-accent"
-							: ""
+						currentPage === "Subagents" ? "bg-accent" : ""
 					}`}
 				>
 					Subagents

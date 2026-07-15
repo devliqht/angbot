@@ -5,12 +5,7 @@ import CreateFirstAgent from "../components/create_first_agent";
 import { type ContextAgent, ServerContext } from "../context/Server_Context";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -27,7 +22,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () => void }) {
+function AgentCard({
+	agent,
+	onRefresh,
+}: {
+	agent: ContextAgent;
+	onRefresh: () => void;
+}) {
 	const [expanded, setExpanded] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [newName, setNewName] = useState(agent.name);
@@ -122,7 +123,11 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 			<Collapsible open={expanded} onOpenChange={setExpanded}>
 				<div className="flex w-full items-center justify-between p-5 pr-6 rounded-t-lg select-none">
 					{isEditing ? (
-						<form onSubmit={triggerRename} className="flex items-center gap-2 flex-1 mr-4" onClick={(e) => e.stopPropagation()}>
+						<form
+							onSubmit={triggerRename}
+							className="flex items-center gap-2 flex-1 mr-4"
+							onClick={(e) => e.stopPropagation()}
+						>
 							<Input
 								value={newName}
 								onChange={(e) => setNewName(e.target.value)}
@@ -163,7 +168,10 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 						</CollapsibleTrigger>
 					)}
 
-					<div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="flex items-center gap-2 ml-4"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<Button
 							variant="ghost"
 							size="icon-sm"
@@ -192,19 +200,44 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 				</CollapsibleContent>
 			</Collapsible>
 
-			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+			<Dialog
+				open={confirmModal !== null}
+				onOpenChange={(open) => !open && setConfirmModal(null)}
+			>
 				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
 					<DialogHeader>
-						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
+						<DialogTitle className="text-white font-bold">
+							{confirmModal?.title}
+						</DialogTitle>
 					</DialogHeader>
 					<div className="py-4 text-sm text-gray-300">
 						{confirmModal?.type === "delete" ? (
 							<p>
-								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
+								Are you sure you wanna delete{" "}
+								<span className="font-semibold text-white">
+									{confirmModal.entityName}
+								</span>
+								? Deleting in{" "}
+								<span className="font-mono text-red-500 font-semibold">
+									{confirmModal.countdown}
+								</span>{" "}
+								...
 							</p>
 						) : (
 							<p>
-								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
+								Are you sure you wanna rename{" "}
+								<span className="font-semibold text-white">
+									{confirmModal?.entityName}
+								</span>{" "}
+								to{" "}
+								<span className="font-semibold text-white">
+									{confirmModal?.targetName}
+								</span>
+								? Changing in{" "}
+								<span className="font-mono text-[#1752F0] font-semibold">
+									{confirmModal?.countdown}
+								</span>{" "}
+								...
 							</p>
 						)}
 					</div>
@@ -403,7 +436,11 @@ export default function Dashboard() {
 
 	return (
 		<section aria-label="Dashboard overview">
-			<div className="flex gap-6 mb-8 select-none" role="group" aria-label="Statistics">
+			<div
+				className="flex gap-6 mb-8 select-none"
+				role="group"
+				aria-label="Statistics"
+			>
 				<Card className="flex-1 h-36">
 					<CardHeader className="pb-0">
 						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
