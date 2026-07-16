@@ -59,12 +59,19 @@ export function splitMessage(
 	for (const originalLine of lines) {
 		let line = originalLine;
 
-		// Hard-wrap a single line that alone exceeds maxLength.
-		while (line.length > maxLength) {
+		const prefix = reopenPrefix();
+		let reserve = inCodeBlock ? FENCE.length + 1 : 0; // room for closing fence
+		const lineLimit = Math.max(
+			100,
+			maxLength - (prefix ? prefix.length + 1 : 0) - reserve,
+		);
+
+		// Hard-wrap a single line that alone (or with reopen prefix) exceeds maxLength.
+		while (line.length > lineLimit) {
 			flush();
-			const reserve = inCodeBlock ? FENCE.length + 1 : 0; // room for closing fence
+			const currentReserve = inCodeBlock ? FENCE.length + 1 : 0;
 			const budget = Math.max(
-				maxLength - current.length - (current ? 1 : 0) - reserve,
+				maxLength - current.length - (current ? 1 : 0) - currentReserve,
 				100,
 			);
 			const slice = line.slice(0, budget);
@@ -73,7 +80,7 @@ export function splitMessage(
 			line = line.slice(slice.length);
 		}
 
-		const reserve = inCodeBlock ? FENCE.length + 1 : 0; // room for closing fence
+		reserve = inCodeBlock ? FENCE.length + 1 : 0; // room for closing fence
 		const prospectiveLength =
 			(current ? current.length + 1 : 0) + line.length + reserve;
 
