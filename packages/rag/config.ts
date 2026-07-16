@@ -29,5 +29,5 @@ export const RETRIEVAL_TOP_K = num(process.env.RAG_TOP_K, 6);
 // tokens; the default leaves headroom for the system prompt, history + output.
 export const FULL_CONTEXT_TOKEN_THRESHOLD = num(
 	process.env.RAG_FULL_CONTEXT_TOKEN_THRESHOLD,
-	800_000,
+	2000,
 );
