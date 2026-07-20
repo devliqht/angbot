@@ -163,7 +163,31 @@ export async function answer(
 				});
 			}
 
-			contents.push({ role: "model", parts: modelParts as ChatPart[] });
+			const sanitizedModelParts = modelParts.map((part) => {
+				if (part.functionCall) {
+					const fc = part.functionCall as Record<string, unknown>;
+					const sig = (fc.thought_signature || fc.thoughtSignature) as
+						| string
+						| undefined;
+					if (sig) {
+						return {
+							...part,
+							functionCall: {
+								name: fc.name,
+								args: fc.args,
+								thought_signature: sig,
+								thoughtSignature: sig,
+							},
+						};
+					}
+				}
+				return part;
+			});
+
+			contents.push({
+				role: "model",
+				parts: sanitizedModelParts as ChatPart[],
+			});
 			contents.push({ role: "user", parts: functionResponseParts });
 			attempts++;
 		}
