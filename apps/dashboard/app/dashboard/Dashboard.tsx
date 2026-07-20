@@ -4,7 +4,8 @@ import { useContext, useEffect, useState } from "react";
 import CreateFirstAgent from "../components/create_first_agent";
 import { type ContextAgent, ServerContext } from "../context/Server_Context";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
 	Card,
 	CardContent,
@@ -19,6 +20,8 @@ import {
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
@@ -32,28 +35,18 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 	const [isEditing, setIsEditing] = useState(false);
 	const [newName, setNewName] = useState(agent.name);
 	const [renaming, setRenaming] = useState(false);
+	const [copiedCommand, setCopiedCommand] = useState(false);
 	const [confirmModal, setConfirmModal] = useState<{
 		type: "delete" | "rename";
 		title: string;
 		entityName: string;
 		targetName?: string;
-		countdown: number;
 		onExecute: () => Promise<void>;
 	} | null>(null);
+	const [deleteInput, setDeleteInput] = useState("");
 
 	useEffect(() => {
-		if (confirmModal === null) return;
-		if (confirmModal.countdown === 0) {
-			confirmModal.onExecute();
-			setConfirmModal(null);
-			return;
-		}
-		const timer = setTimeout(() => {
-			setConfirmModal((prev) =>
-				prev !== null ? { ...prev, countdown: prev.countdown - 1 } : null,
-			);
-		}, 1000);
-		return () => clearTimeout(timer);
+		setDeleteInput("");
 	}, [confirmModal]);
 
 	const handleDelete = async () => {
@@ -62,12 +55,15 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 				method: "DELETE",
 			});
 			if (res.ok) {
+				toast.success(`Agent "${agent.name}" deleted`);
 				onRefresh();
 			} else {
-				alert("Failed to delete agent");
+				const errData = await res.json().catch(() => ({}));
+				toast.error(errData.error || "Failed to delete agent");
 			}
 		} catch (err) {
 			console.error("Delete error:", err);
+			toast.error("Failed to delete agent");
 		}
 	};
 
@@ -80,13 +76,16 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 				body: JSON.stringify({ name: newName.trim() }),
 			});
 			if (res.ok) {
+				toast.success(`Agent renamed to "${newName.trim()}"`);
 				setIsEditing(false);
 				onRefresh();
 			} else {
-				alert("Failed to rename agent");
+				const errData = await res.json().catch(() => ({}));
+				toast.error(errData.error || "Failed to rename agent");
 			}
 		} catch (err) {
 			console.error("Rename error:", err);
+			toast.error("Failed to rename agent");
 		} finally {
 			setRenaming(false);
 		}
@@ -95,9 +94,8 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 	const triggerDelete = () => {
 		setConfirmModal({
 			type: "delete",
-			title: "Confirm Deletion",
+			title: "Delete Agent",
 			entityName: agent.name,
-			countdown: 5,
 			onExecute: handleDelete,
 		});
 	};
@@ -109,10 +107,9 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 		setIsEditing(false);
 		setConfirmModal({
 			type: "rename",
-			title: "Confirm Rename",
+			title: "Rename Agent",
 			entityName: agent.name,
 			targetName: trimmedName,
-			countdown: 5,
 			onExecute: handleRename,
 		});
 	};
@@ -153,17 +150,22 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 								className="flex-grow text-left transition-colors cursor-pointer font-medium"
 								aria-expanded={expanded}
 								aria-label={`${agent.name} agent details`}
-								onDoubleClick={(e) => {
-									e.stopPropagation();
-									setIsEditing(true);
-								}}
 							>
 								{agent.name}
 							</button>
 						</CollapsibleTrigger>
 					)}
 
-					<div className="flex items-center gap-2 ml-4" onClick={(e) => e.stopPropagation()}>
+					<div className="flex items-center gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
+						<Button
+							variant="ghost"
+							size="icon-sm"
+							className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-full h-8 w-8 cursor-pointer"
+							onClick={() => setIsEditing(true)}
+							aria-label={`Rename ${agent.name}`}
+						>
+							<Pencil className="h-4 w-4" />
+						</Button>
 						<Button
 							variant="ghost"
 							size="icon-sm"
@@ -177,47 +179,108 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 				</div>
 				<CollapsibleContent>
 					<Separator />
-					<div className="flex px-10 pb-5 pt-5">
-						<div className="w-full">
-							<p className="text-muted-foreground text-sm">Invocations</p>
-							<p className="text-2xl font-semibold">{agent.invocations}</p>
+					<div className="flex flex-col px-4 sm:px-10 pb-5 pt-5 gap-4">
+						<div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+							<div className="w-full">
+								<p className="text-muted-foreground text-sm">Invocations</p>
+								<p className="text-2xl font-semibold">{agent.invocations}</p>
+							</div>
+							<div className="w-full">
+								<p className="text-muted-foreground text-sm">Tokens Used</p>
+								<p className="text-2xl font-semibold">
+									{(agent.tokensUsed / 1000).toFixed(1)}k
+								</p>
+							</div>
 						</div>
-						<div className="w-full">
-							<p className="text-muted-foreground text-sm">Tokens Used</p>
-							<p className="text-2xl font-semibold">
-								{(agent.tokensUsed / 1000).toFixed(1)}k
-							</p>
+						<div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 select-none">
+							<div className="flex items-center gap-2">
+								<span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Discord Command:</span>
+								<code className="bg-background px-2.5 py-1 rounded text-xs font-mono text-primary">
+									/agent bind {agent.name}
+								</code>
+							</div>
+							<Button
+								variant="ghost"
+								size="sm"
+								className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1.5"
+								onClick={() => {
+									navigator.clipboard.writeText(`/agent bind ${agent.name}`);
+									setCopiedCommand(true);
+									toast.success(`Copied command for "${agent.name}"`);
+									setTimeout(() => setCopiedCommand(false), 2000);
+								}}
+							>
+								{copiedCommand ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+								{copiedCommand ? "Copied" : "Copy Command"}
+							</Button>
 						</div>
 					</div>
 				</CollapsibleContent>
 			</Collapsible>
 
 			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
-				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
-					<DialogHeader>
-						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
-					</DialogHeader>
-					<div className="py-4 text-sm text-gray-300">
-						{confirmModal?.type === "delete" ? (
-							<p>
-								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
-							</p>
-						) : (
-							<p>
-								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
-							</p>
+				<DialogContent className="sm:max-w-[420px]">
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							if (confirmModal) {
+								if (confirmModal.type === "delete" && deleteInput !== confirmModal.entityName) return;
+								const exec = confirmModal.onExecute;
+								setConfirmModal(null);
+								exec();
+							}
+						}}
+					>
+						<DialogHeader>
+							<DialogTitle>
+								{confirmModal?.type === "delete" ? "Delete Agent" : "Rename Agent"}
+							</DialogTitle>
+							<DialogDescription>
+								{confirmModal?.type === "delete" ? (
+									<>
+										This action cannot be undone. Please type{" "}
+										<span className="font-semibold text-foreground select-all">{confirmModal.entityName}</span>{" "}
+										to confirm.
+									</>
+								) : (
+									<>
+										Are you sure you want to rename <span className="font-semibold text-foreground">{confirmModal?.entityName}</span> to <span className="font-semibold text-foreground">{confirmModal?.targetName}</span>?
+									</>
+								)}
+							</DialogDescription>
+						</DialogHeader>
+
+						{confirmModal?.type === "delete" && (
+							<div className="py-3">
+								<Input
+									value={deleteInput}
+									onChange={(e) => setDeleteInput(e.target.value)}
+									placeholder={`Type "${confirmModal.entityName}" to confirm`}
+									className="text-sm font-mono"
+									autoFocus
+								/>
+							</div>
 						)}
-					</div>
-					<div className="flex justify-end gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-transparent border-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white"
-							onClick={() => setConfirmModal(null)}
-						>
-							Cancel
-						</Button>
-					</div>
+
+						<DialogFooter className="mt-4">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setConfirmModal(null)}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								variant={confirmModal?.type === "delete" ? "destructive" : "default"}
+								disabled={
+									confirmModal?.type === "delete" && deleteInput !== confirmModal.entityName
+								}
+							>
+								{confirmModal?.type === "delete" ? "Delete Agent" : "Rename Agent"}
+							</Button>
+						</DialogFooter>
+					</form>
 				</DialogContent>
 			</Dialog>
 		</Card>
@@ -262,6 +325,7 @@ function CreateAgentModal({
 				const errData = (await res.json()) as { error?: string };
 				throw new Error(errData.error || "Failed to create agent");
 			}
+			toast.success(`Agent "${name.trim()}" created successfully!`);
 			onCreated();
 			onOpenChange(false);
 			setName("");
@@ -403,7 +467,7 @@ export default function Dashboard() {
 
 	return (
 		<section aria-label="Dashboard overview">
-			<div className="flex gap-6 mb-8 select-none" role="group" aria-label="Statistics">
+			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 select-none" role="group" aria-label="Statistics">
 				<Card className="flex-1 h-36">
 					<CardHeader className="pb-0">
 						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">

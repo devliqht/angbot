@@ -27,7 +27,7 @@ export async function ingestDocument(input: IngestInput) {
 	});
 
 	try {
-		const text = await extractText(input.bytes, input.mimeType);
+		const text = await extractText(input.bytes, input.mimeType, input.filename);
 		const pieces = chunkText(text, {
 			chunkTokens: CHUNK_TOKENS,
 			overlapTokens: CHUNK_OVERLAP_TOKENS,

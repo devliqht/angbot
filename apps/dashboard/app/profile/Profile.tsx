@@ -72,7 +72,7 @@ export default function Profile() {
 				</p>
 
 				<div
-					className="flex max-w-[700px] flex-col gap-2"
+					className="flex w-full flex-col gap-2"
 					role="list"
 					aria-label="Discord servers"
 				>

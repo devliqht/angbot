@@ -1,11 +1,14 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Trash2, Edit } from "lucide-react";
+import { AlertTriangle, Check, Copy, Edit, FileText, Pencil, Trash2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
@@ -43,12 +46,36 @@ interface DocumentFromAPI {
 	createdAt: string;
 }
 
+const PROMPT_TEMPLATES = [
+	{
+		label: "🎓 Socratic Study Tutor",
+		prompt:
+			"You are a patient, encouraging Socratic study tutor. Never directly answer questions outright. Instead, guide the student step-by-step through questions, analogies, and conceptual hints to help them discover the answer themselves.",
+	},
+	{
+		label: "🎴 Flashcard & Q&A Generator",
+		prompt:
+			"You are an expert study assistant focused on active recall. When given study materials or topics, format your output into clear markdown Flashcards (Front / Back), Key Definitions, and Bulleted Summaries.",
+	},
+	{
+		label: "💻 Code & Debug Assistant",
+		prompt:
+			"You are a technical coding mentor for computer science students. Explain programming concepts clearly, provide well-commented code snippets, point out syntax or logical bugs, and suggest clean architecture best practices.",
+	},
+	{
+		label: "📝 Summary & Quizmaster",
+		prompt:
+			"You are a study summarizer and quizmaster. Summarize notes concisely with key takeaways, then generate 5 practice multiple-choice quiz questions with answer explanations to test the student's understanding.",
+	},
+];
+
 // ── Document Panel (list, upload, delete) ──
 function DocumentPanel({ agentId }: { agentId: string }) {
 	const [documents, setDocuments] = useState<DocumentFromAPI[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [uploading, setUploading] = useState(false);
 	const [deletingId, setDeletingId] = useState<string | null>(null);
+	const [isDragging, setIsDragging] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const fetchDocuments = useCallback(async () => {
@@ -82,10 +109,9 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 		return () => clearInterval(interval);
 	}, [documents, fetchDocuments]);
 
-	const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		const file = e.target.files?.[0];
-		if (!file) return;
+	const uploadFile = async (file: File) => {
 		setUploading(true);
+		const loadingToastId = toast.loading(`Uploading "${file.name}"...`);
 		try {
 			const formData = new FormData();
 			formData.append("file", file);
@@ -95,32 +121,63 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 			});
 			if (!res.ok) {
 				const errData = (await res.json()) as { error?: string };
-				alert(errData.error || "Failed to upload file");
+				toast.error(errData.error || "Failed to upload file", { id: loadingToastId });
 			} else {
+				toast.success(`Uploaded "${file.name}" successfully!`, { id: loadingToastId });
 				await fetchDocuments();
 			}
 		} catch (err) {
 			console.error("Upload error:", err);
-			alert("Failed to upload file");
+			toast.error("Failed to upload file", { id: loadingToastId });
 		} finally {
 			setUploading(false);
 			if (fileInputRef.current) fileInputRef.current.value = "";
 		}
 	};
 
-	const handleDelete = async (docId: string) => {
+	const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+		await uploadFile(file);
+	};
+
+	const handleDragOver = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(true);
+	};
+
+	const handleDragLeave = (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(false);
+	};
+
+	const handleDrop = async (e: React.DragEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		setIsDragging(false);
+
+		const files = Array.from(e.dataTransfer.files);
+		if (files.length === 0) return;
+		await uploadFile(files[0]);
+	};
+
+	const handleDelete = async (docId: string, filename: string) => {
 		setDeletingId(docId);
 		try {
 			const res = await fetch(`/api/agents/${agentId}/documents/${docId}`, {
 				method: "DELETE",
 			});
 			if (res.ok) {
+				toast.success(`Deleted "${filename}"`);
 				setDocuments((prev) => prev.filter((d) => d.id !== docId));
 			} else {
-				alert("Failed to delete document");
+				toast.error("Failed to delete document");
 			}
 		} catch (err) {
 			console.error("Delete error:", err);
+			toast.error("Failed to delete document");
 		} finally {
 			setDeletingId(null);
 		}
@@ -129,17 +186,29 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 	return (
 		<>
 			<div
-				className="flex flex-1 flex-col gap-2 p-4 overflow-y-auto"
+				className={`flex flex-1 flex-col gap-2 p-4 overflow-y-auto relative transition-colors ${
+					isDragging ? "bg-primary/10 border-2 border-dashed border-primary" : ""
+				}`}
 				role="list"
 				aria-label="Uploaded documents"
+				onDragOver={handleDragOver}
+				onDragLeave={handleDragLeave}
+				onDrop={handleDrop}
 			>
+				{isDragging && (
+					<div className="absolute inset-0 z-20 bg-background/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+						<UploadCloud className="h-10 w-10 text-primary mb-2 animate-bounce" />
+						<p className="font-semibold text-sm">Drop study files here to upload</p>
+						<p className="text-xs text-muted-foreground">PDF, PPT, Word, Excel, Markdown (MD/RMD), Code (.py, .cpp, .js, etc), CSV & Text</p>
+					</div>
+				)}
 				{loading ? (
 					<p className="text-muted-foreground text-sm text-center py-4" aria-live="polite">
 						Loading documents...
 					</p>
 				) : documents.length === 0 ? (
 					<p className="text-muted-foreground text-sm text-center py-4">
-						No documents uploaded yet.
+						No documents uploaded yet. Drop files here or click Add Resource.
 					</p>
 				) : (
 					documents.map((doc) => (
@@ -160,10 +229,10 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 							<Button
 								variant="ghost"
 								size="icon-xs"
-								onClick={() => handleDelete(doc.id)}
+								onClick={() => handleDelete(doc.id, doc.filename)}
 								disabled={deletingId === doc.id}
 								aria-label={`Delete ${doc.filename}`}
-								className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+								className="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
 							>
 								<Trash2 className="h-3.5 w-3.5" />
 							</Button>
@@ -175,7 +244,7 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 				<input
 					ref={fileInputRef}
 					type="file"
-					accept=".txt,.pdf,.md,.csv,text/*,application/pdf"
+					accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.csv,.tsv,.txt,.md,.rmd,.markdown,.json,.c,.cpp,.h,.hpp,.cs,.java,.py,.js,.jsx,.ts,.tsx,.sql,.sh,.r,.kt,.swift,.go,.rs,.tex,.log,text/*,application/*"
 					onChange={handleUpload}
 					className="hidden"
 					aria-label="Upload document file"
@@ -317,38 +386,31 @@ export default function Agents() {
 		title: string;
 		entityName: string;
 		targetName?: string;
-		countdown: number;
 		onExecute: () => Promise<void>;
 	} | null>(null);
+	const [deleteInput, setDeleteInput] = useState("");
 
 	useEffect(() => {
-		if (confirmModal === null) return;
-		if (confirmModal.countdown === 0) {
-			confirmModal.onExecute();
-			setConfirmModal(null);
-			return;
-		}
-		const timer = setTimeout(() => {
-			setConfirmModal((prev) =>
-				prev !== null ? { ...prev, countdown: prev.countdown - 1 } : null,
-			);
-		}, 1000);
-		return () => clearTimeout(timer);
+		setDeleteInput("");
 	}, [confirmModal]);
 
 	const handleDeleteSubagent = async () => {
 		if (!selectedAgentId) return;
+		const currentAgent = allAgents.find((a) => a.id === selectedAgentId);
 		try {
 			const res = await fetch(`/api/agents/${selectedAgentId}`, {
 				method: "DELETE",
 			});
 			if (res.ok) {
+				toast.success(`Deleted subagent "${currentAgent?.name || ""}"`);
 				await fetchAgents();
 			} else {
-				alert("Failed to delete subagent");
+				const errData = await res.json().catch(() => ({}));
+				toast.error(errData.error || "Failed to delete subagent");
 			}
 		} catch (err) {
 			console.error("Delete error:", err);
+			toast.error("Failed to delete subagent");
 		}
 	};
 
@@ -362,13 +424,16 @@ export default function Agents() {
 				body: JSON.stringify({ name: renameNewName.trim() }),
 			});
 			if (res.ok) {
+				toast.success(`Renamed subagent to "${renameNewName.trim()}"`);
 				setRenamingAgent(null);
 				await fetchAgents();
 			} else {
-				alert("Failed to rename subagent");
+				const errData = await res.json().catch(() => ({}));
+				toast.error(errData.error || "Failed to rename subagent");
 			}
 		} catch (err) {
 			console.error("Rename error:", err);
+			toast.error("Failed to rename subagent");
 		} finally {
 			setRenaming(false);
 		}
@@ -379,9 +444,8 @@ export default function Agents() {
 		if (!currentAgent) return;
 		setConfirmModal({
 			type: "delete",
-			title: "Confirm Deletion",
+			title: "Delete Subagent",
 			entityName: currentAgent.name,
-			countdown: 5,
 			onExecute: handleDeleteSubagent,
 		});
 	};
@@ -398,10 +462,9 @@ export default function Agents() {
 		// Keep the state of renamingAgent for handleRenameSubagent execution
 		setConfirmModal({
 			type: "rename",
-			title: "Confirm Rename",
+			title: "Rename Subagent",
 			entityName: originalName,
 			targetName: trimmedName,
-			countdown: 5,
 			onExecute: async () => {
 				await handleRenameSubagent();
 			},
@@ -488,17 +551,19 @@ export default function Agents() {
 				body: JSON.stringify({ systemPrompt: editedPrompt }),
 			});
 			if (res.ok) {
+				toast.success("System prompt saved successfully!");
 				setAllAgents((prev) =>
 					prev.map((a) =>
 						a.id === selectedAgentId ? { ...a, systemPrompt: editedPrompt } : a,
 					),
 				);
 			} else {
-				alert("Failed to save prompt");
+				const errData = await res.json().catch(() => ({}));
+				toast.error(errData.error || "Failed to save prompt");
 			}
 		} catch (err) {
 			console.error("Save prompt error:", err);
-			alert("Failed to save prompt");
+			toast.error("Failed to save prompt");
 		} finally {
 			setSavingPrompt(false);
 		}
@@ -537,8 +602,8 @@ export default function Agents() {
 	return (
 		<section aria-label="Agent management" className="flex h-full flex-col gap-4">
 			{/* Top bar: mode toggle + agent selector */}
-			<div className="flex items-center justify-between w-full gap-4" role="toolbar" aria-label="Agent controls">
-				<div className="flex items-center gap-4">
+			<div className="flex flex-wrap items-center justify-between w-full gap-3" role="toolbar" aria-label="Agent controls">
+				<div className="flex flex-wrap items-center gap-2 sm:gap-4">
 					{/* Mode toggle */}
 					<div
 						className="flex rounded-lg overflow-hidden border border-border"
@@ -602,27 +667,12 @@ export default function Agents() {
 									aria-label={
 										viewMode === "agents" ? "Select agent" : "Select subagent"
 									}
-									onDoubleClick={() => {
-										const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
-										if (agentToRename) {
-											setRenamingAgent(agentToRename);
-											setRenameNewName(agentToRename.name);
-										}
-									}}
 								>
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
 									{dropdownItems.map((a) => (
-										<SelectItem
-											key={a.id}
-											value={a.id}
-											onDoubleClick={(e) => {
-												e.stopPropagation();
-												setRenamingAgent(a);
-												setRenameNewName(a.name);
-											}}
-										>
+										<SelectItem key={a.id} value={a.id}>
 											{a.name}
 										</SelectItem>
 									))}
@@ -688,17 +738,37 @@ export default function Agents() {
 
 			{/* Main panels */}
 			{activeAgent && (
-				<div className="flex flex-1 gap-4 min-h-0">
+				<div className="flex flex-col lg:flex-row flex-1 gap-4 min-h-0">
 					{/* System Prompt Panel */}
 					<div
 						className="flex flex-1 flex-col overflow-hidden rounded-lg bg-card border border-border"
 						role="region"
 						aria-label="System prompt editor"
 					>
-						<div className="p-4 border-b border-border">
+						<div className="p-4 border-b border-border flex items-center justify-between">
 							<h3 className="text-muted-foreground text-sm font-semibold">
 								System Prompt
 							</h3>
+							<Select
+								onValueChange={(value) => {
+									const template = PROMPT_TEMPLATES.find((t) => t.label === value);
+									if (template) {
+										setEditedPrompt(template.prompt);
+										toast.success(`Applied "${template.label.split(" ")[1]}" template`);
+									}
+								}}
+							>
+								<SelectTrigger className="h-7 text-xs border-border w-[170px]">
+									<SelectValue placeholder="Starter Templates" />
+								</SelectTrigger>
+								<SelectContent>
+									{PROMPT_TEMPLATES.map((t) => (
+										<SelectItem key={t.label} value={t.label} className="text-xs">
+											{t.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 						</div>
 						<div className="flex-1 p-4">
 							<Textarea
@@ -782,33 +852,70 @@ export default function Agents() {
 				</DialogContent>
 			</Dialog>
 
-			{/* Confirmation Dialog with Countdown Timer */}
+			{/* Confirmation Dialog with Retype Name Verification */}
 			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
-				<DialogContent className="sm:max-w-[420px] bg-[#202127] border border-[#2a2a2a] select-none text-white">
-					<DialogHeader>
-						<DialogTitle className="text-white font-bold">{confirmModal?.title}</DialogTitle>
-					</DialogHeader>
-					<div className="py-4 text-sm text-gray-300">
-						{confirmModal?.type === "delete" ? (
-							<p>
-								Are you sure you wanna delete <span className="font-semibold text-white">{confirmModal.entityName}</span>? Deleting in <span className="font-mono text-red-500 font-semibold">{confirmModal.countdown}</span> ...
-							</p>
-						) : (
-							<p>
-								Are you sure you wanna rename <span className="font-semibold text-white">{confirmModal?.entityName}</span> to <span className="font-semibold text-white">{confirmModal?.targetName}</span>? Changing in <span className="font-mono text-[#1752F0] font-semibold">{confirmModal?.countdown}</span> ...
-							</p>
+				<DialogContent className="sm:max-w-[420px]">
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							if (confirmModal) {
+								if (confirmModal.type === "delete" && deleteInput !== confirmModal.entityName) return;
+								const exec = confirmModal.onExecute;
+								setConfirmModal(null);
+								exec();
+							}
+						}}
+					>
+						<DialogHeader>
+							<DialogTitle>
+								{confirmModal?.type === "delete" ? "Delete Subagent" : "Rename Subagent"}
+							</DialogTitle>
+							<DialogDescription>
+								{confirmModal?.type === "delete" ? (
+									<>
+										This action cannot be undone. Please type{" "}
+										<span className="font-semibold text-foreground select-all">{confirmModal.entityName}</span>{" "}
+										to confirm.
+									</>
+								) : (
+									<>
+										Are you sure you want to rename <span className="font-semibold text-foreground">{confirmModal?.entityName}</span> to <span className="font-semibold text-foreground">{confirmModal?.targetName}</span>?
+									</>
+								)}
+							</DialogDescription>
+						</DialogHeader>
+
+						{confirmModal?.type === "delete" && (
+							<div className="py-3">
+								<Input
+									value={deleteInput}
+									onChange={(e) => setDeleteInput(e.target.value)}
+									placeholder={`Type "${confirmModal.entityName}" to confirm`}
+									className="text-sm font-mono"
+									autoFocus
+								/>
+							</div>
 						)}
-					</div>
-					<div className="flex justify-end gap-2">
-						<Button
-							type="button"
-							variant="outline"
-							className="bg-transparent border-[#2a2a2a] hover:bg-[#2a2a2a] hover:text-white"
-							onClick={() => setConfirmModal(null)}
-						>
-							Cancel
-						</Button>
-					</div>
+
+						<DialogFooter className="mt-4">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setConfirmModal(null)}
+							>
+								Cancel
+							</Button>
+							<Button
+								type="submit"
+								variant={confirmModal?.type === "delete" ? "destructive" : "default"}
+								disabled={
+									confirmModal?.type === "delete" && deleteInput !== confirmModal.entityName
+								}
+							>
+								{confirmModal?.type === "delete" ? "Delete Subagent" : "Rename Subagent"}
+							</Button>
+						</DialogFooter>
+					</form>
 				</DialogContent>
 			</Dialog>
 		</section>

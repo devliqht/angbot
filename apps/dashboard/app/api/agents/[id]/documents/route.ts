@@ -88,11 +88,34 @@ export async function POST(
 		}
 
 		const mimeType = file.type;
-		if (!mimeType.startsWith("text/") && mimeType !== "application/pdf") {
+		const ext = file.name.includes(".")
+			? file.name.split(".").pop()!.toLowerCase()
+			: "";
+
+		const ALLOWED_EXTENSIONS = new Set([
+			"pdf", "ppt", "pptx", "doc", "docx", "xls", "xlsx", "csv", "tsv",
+			"txt", "md", "rmd", "markdown", "json", "yaml", "yml", "xml", "html", "css",
+			"c", "cpp", "h", "hpp", "cs", "java", "py", "js", "jsx", "ts", "tsx",
+			"sql", "sh", "bat", "ps1", "r", "kt", "kts", "swift", "go", "rs", "php",
+			"rb", "m", "tex", "log", "ini", "env", "png", "jpg", "jpeg"
+		]);
+
+		const isAllowedMime =
+			mimeType.startsWith("text/") ||
+			mimeType.startsWith("image/") ||
+			mimeType.includes("pdf") ||
+			mimeType.includes("document") ||
+			mimeType.includes("presentation") ||
+			mimeType.includes("spreadsheet") ||
+			mimeType.includes("excel") ||
+			mimeType.includes("powerpoint") ||
+			mimeType.includes("msword");
+
+		if (!isAllowedMime && !ALLOWED_EXTENSIONS.has(ext)) {
 			return NextResponse.json(
 				{
 					error:
-						"Unsupported file type. Only text files and PDFs are supported.",
+						"Unsupported file type. Please upload a PDF, Office Document (PPT/Word/Excel), Markdown (MD/RMD), Code file, or Text file.",
 				},
 				{ status: 400 },
 			);

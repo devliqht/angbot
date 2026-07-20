@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "next-auth/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -61,7 +62,10 @@ export default function RootLayout({
 		>
 			<body className="min-h-full flex flex-col">
 				<SessionProvider>
-					<TooltipProvider>{children}</TooltipProvider>
+					<TooltipProvider>
+						{children}
+						<Toaster theme="dark" position="bottom-right" richColors />
+					</TooltipProvider>
 				</SessionProvider>
 			</body>
 		</html>
