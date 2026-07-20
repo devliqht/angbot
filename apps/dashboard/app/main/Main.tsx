@@ -1,15 +1,7 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { Menu, User, X } from "lucide-react";
-import Agents from "../agents/Agents";
-import HomepageButton from "../components/homepage_button";
-import LogoutButton from "../components/logout_button";
-import SidePanel from "../components/side_panel";
-import { MainContext } from "../context/Main_Context";
-import { ServerContext } from "../context/Server_Context";
-import Dashboard from "../dashboard/Dashboard";
-import Profile from "../profile/Profile";
+import { useSession } from "next-auth/react";
+import { useContext, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +17,14 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
+import Agents from "../agents/Agents";
+import HomepageButton from "../components/homepage_button";
+import LogoutButton from "../components/logout_button";
+import SidePanel from "../components/side_panel";
+import { MainContext } from "../context/Main_Context";
+import { ServerContext } from "../context/Server_Context";
+import Dashboard from "../dashboard/Dashboard";
+import Profile from "../profile/Profile";
 
 function Header({
 	currPage,
@@ -60,9 +60,15 @@ function Header({
 					className="md:hidden text-foreground cursor-pointer shrink-0"
 					aria-label="Toggle navigation menu"
 				>
-					{mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+					{mobileMenuOpen ? (
+						<X className="h-5 w-5" />
+					) : (
+						<Menu className="h-5 w-5" />
+					)}
 				</Button>
-				<h1 className="text-xl sm:text-2xl md:text-4xl font-bold truncate">{currPage}</h1>
+				<h1 className="text-xl sm:text-2xl md:text-4xl font-bold truncate">
+					{currPage}
+				</h1>
 			</div>
 			<div className="flex items-center gap-2 sm:gap-3 h-full">
 				{currPage !== "Profile" && mounted && (
@@ -113,7 +119,9 @@ function Header({
 									/>
 								) : null}
 								<AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
-									{session?.user?.name?.charAt(0)?.toUpperCase() || <User className="h-4 w-4" />}
+									{session?.user?.name?.charAt(0)?.toUpperCase() || (
+										<User className="h-4 w-4" />
+									)}
 								</AvatarFallback>
 							</Avatar>
 						</Button>

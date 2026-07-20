@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 

@@ -29,7 +29,10 @@ export default function SidePanel() {
 			<div className="pt-2">
 				<HomepageButton />
 			</div>
-			<nav aria-label="Dashboard sections" className="flex flex-col gap-2 h-full w-full px-1">
+			<nav
+				aria-label="Dashboard sections"
+				className="flex flex-col gap-2 h-full w-full px-1"
+			>
 				{navItems.map((item) => {
 					const isActive = currentPage === item.page;
 					return (

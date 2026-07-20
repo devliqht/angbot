@@ -1,5 +1,14 @@
 "use client";
-import { AlertTriangle, Check, Copy, Edit, FileText, Pencil, Trash2, UploadCloud } from "lucide-react";
+import {
+	AlertTriangle,
+	Check,
+	Copy,
+	Edit,
+	FileText,
+	Pencil,
+	Trash2,
+	UploadCloud,
+} from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -121,9 +130,13 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 			});
 			if (!res.ok) {
 				const errData = (await res.json()) as { error?: string };
-				toast.error(errData.error || "Failed to upload file", { id: loadingToastId });
+				toast.error(errData.error || "Failed to upload file", {
+					id: loadingToastId,
+				});
 			} else {
-				toast.success(`Uploaded "${file.name}" successfully!`, { id: loadingToastId });
+				toast.success(`Uploaded "${file.name}" successfully!`, {
+					id: loadingToastId,
+				});
 				await fetchDocuments();
 			}
 		} catch (err) {
@@ -187,7 +200,9 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 		<>
 			<div
 				className={`flex flex-1 flex-col gap-2 p-4 overflow-y-auto relative transition-colors ${
-					isDragging ? "bg-primary/10 border-2 border-dashed border-primary" : ""
+					isDragging
+						? "bg-primary/10 border-2 border-dashed border-primary"
+						: ""
 				}`}
 				role="list"
 				aria-label="Uploaded documents"
@@ -198,8 +213,13 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 				{isDragging && (
 					<div className="absolute inset-0 z-20 bg-background/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center pointer-events-none">
 						<UploadCloud className="h-10 w-10 text-primary mb-2 animate-bounce" />
-						<p className="font-semibold text-sm">Drop study files here to upload</p>
-						<p className="text-xs text-muted-foreground">PDF, PPT, Word, Excel, Markdown (MD/RMD), Code (.py, .cpp, .js, etc), CSV & Text</p>
+						<p className="font-semibold text-sm">
+							Drop study files here to upload
+						</p>
+						<p className="text-xs text-muted-foreground">
+							PDF, PPT, Word, Excel, Markdown (MD/RMD), Code (.py, .cpp, .js,
+							etc), CSV & Text
+						</p>
 					</div>
 				)}
 				{loading ? (
@@ -613,7 +633,11 @@ export default function Agents() {
 			className="flex h-full flex-col gap-4"
 		>
 			{/* Top bar: mode toggle + agent selector */}
-			<div className="flex flex-wrap items-center justify-between w-full gap-3" role="toolbar" aria-label="Agent controls">
+			<div
+				className="flex flex-wrap items-center justify-between w-full gap-3"
+				role="toolbar"
+				aria-label="Agent controls"
+			>
 				<div className="flex flex-wrap items-center gap-2 sm:gap-4">
 					{/* Mode toggle */}
 					<div
@@ -764,10 +788,14 @@ export default function Agents() {
 							</h3>
 							<Select
 								onValueChange={(value) => {
-									const template = PROMPT_TEMPLATES.find((t) => t.label === value);
+									const template = PROMPT_TEMPLATES.find(
+										(t) => t.label === value,
+									);
 									if (template) {
 										setEditedPrompt(template.prompt);
-										toast.success(`Applied "${template.label.split(" ")[1]}" template`);
+										toast.success(
+											`Applied "${template.label.split(" ")[1]}" template`,
+										);
 									}
 								}}
 							>
@@ -776,7 +804,11 @@ export default function Agents() {
 								</SelectTrigger>
 								<SelectContent>
 									{PROMPT_TEMPLATES.map((t) => (
-										<SelectItem key={t.label} value={t.label} className="text-xs">
+										<SelectItem
+											key={t.label}
+											value={t.label}
+											className="text-xs"
+										>
 											{t.label}
 										</SelectItem>
 									))}
@@ -876,13 +908,20 @@ export default function Agents() {
 			</Dialog>
 
 			{/* Confirmation Dialog with Retype Name Verification */}
-			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+			<Dialog
+				open={confirmModal !== null}
+				onOpenChange={(open) => !open && setConfirmModal(null)}
+			>
 				<DialogContent className="sm:max-w-[420px]">
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							if (confirmModal) {
-								if (confirmModal.type === "delete" && deleteInput !== confirmModal.entityName) return;
+								if (
+									confirmModal.type === "delete" &&
+									deleteInput !== confirmModal.entityName
+								)
+									return;
 								const exec = confirmModal.onExecute;
 								setConfirmModal(null);
 								exec();
@@ -891,18 +930,30 @@ export default function Agents() {
 					>
 						<DialogHeader>
 							<DialogTitle>
-								{confirmModal?.type === "delete" ? "Delete Subagent" : "Rename Subagent"}
+								{confirmModal?.type === "delete"
+									? "Delete Subagent"
+									: "Rename Subagent"}
 							</DialogTitle>
 							<DialogDescription>
 								{confirmModal?.type === "delete" ? (
 									<>
 										This action cannot be undone. Please type{" "}
-										<span className="font-semibold text-foreground select-all">{confirmModal.entityName}</span>{" "}
+										<span className="font-semibold text-foreground select-all">
+											{confirmModal.entityName}
+										</span>{" "}
 										to confirm.
 									</>
 								) : (
 									<>
-										Are you sure you want to rename <span className="font-semibold text-foreground">{confirmModal?.entityName}</span> to <span className="font-semibold text-foreground">{confirmModal?.targetName}</span>?
+										Are you sure you want to rename{" "}
+										<span className="font-semibold text-foreground">
+											{confirmModal?.entityName}
+										</span>{" "}
+										to{" "}
+										<span className="font-semibold text-foreground">
+											{confirmModal?.targetName}
+										</span>
+										?
 									</>
 								)}
 							</DialogDescription>
@@ -930,12 +981,17 @@ export default function Agents() {
 							</Button>
 							<Button
 								type="submit"
-								variant={confirmModal?.type === "delete" ? "destructive" : "default"}
+								variant={
+									confirmModal?.type === "delete" ? "destructive" : "default"
+								}
 								disabled={
-									confirmModal?.type === "delete" && deleteInput !== confirmModal.entityName
+									confirmModal?.type === "delete" &&
+									deleteInput !== confirmModal.entityName
 								}
 							>
-								{confirmModal?.type === "delete" ? "Delete Subagent" : "Rename Subagent"}
+								{confirmModal?.type === "delete"
+									? "Delete Subagent"
+									: "Rename Subagent"}
 							</Button>
 						</DialogFooter>
 					</form>

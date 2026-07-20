@@ -190,8 +190,8 @@ test("POST 400 when file is missing", async () => {
 
 test("POST 400 when file type is unsupported", async () => {
 	const formData = new FormData();
-	const file = new File([new TextEncoder().encode("image data")], "image.png", {
-		type: "image/png",
+	const file = new File([new TextEncoder().encode("audio data")], "song.mp3", {
+		type: "audio/mp3",
 	});
 	formData.append("file", file);
 

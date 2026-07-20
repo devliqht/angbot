@@ -1,17 +1,10 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import CreateFirstAgent from "../components/create_first_agent";
-import { type ContextAgent, ServerContext } from "../context/Server_Context";
-import { Button } from "@/components/ui/button";
 import { AlertTriangle, Check, Copy, Pencil, Trash2 } from "lucide-react";
+import { useContext, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -29,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import CreateFirstAgent from "../components/create_first_agent";
+import { type ContextAgent, ServerContext } from "../context/Server_Context";
 
 function AgentCard({
 	agent,
@@ -166,7 +161,10 @@ function AgentCard({
 						</CollapsibleTrigger>
 					)}
 
-					<div className="flex items-center gap-1 ml-4" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="flex items-center gap-1 ml-4"
+						onClick={(e) => e.stopPropagation()}
+					>
 						<Button
 							variant="ghost"
 							size="icon-sm"
@@ -204,7 +202,9 @@ function AgentCard({
 						</div>
 						<div className="pt-3 border-t border-border flex flex-wrap items-center justify-between gap-2 select-none">
 							<div className="flex items-center gap-2">
-								<span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Discord Command:</span>
+								<span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+									Discord Command:
+								</span>
 								<code className="bg-background px-2.5 py-1 rounded text-xs font-mono text-primary">
 									/agent bind {agent.name}
 								</code>
@@ -220,7 +220,11 @@ function AgentCard({
 									setTimeout(() => setCopiedCommand(false), 2000);
 								}}
 							>
-								{copiedCommand ? <Check className="h-3.5 w-3.5 text-green-500" /> : <Copy className="h-3.5 w-3.5" />}
+								{copiedCommand ? (
+									<Check className="h-3.5 w-3.5 text-green-500" />
+								) : (
+									<Copy className="h-3.5 w-3.5" />
+								)}
 								{copiedCommand ? "Copied" : "Copy Command"}
 							</Button>
 						</div>
@@ -228,13 +232,20 @@ function AgentCard({
 				</CollapsibleContent>
 			</Collapsible>
 
-			<Dialog open={confirmModal !== null} onOpenChange={(open) => !open && setConfirmModal(null)}>
+			<Dialog
+				open={confirmModal !== null}
+				onOpenChange={(open) => !open && setConfirmModal(null)}
+			>
 				<DialogContent className="sm:max-w-[420px]">
 					<form
 						onSubmit={(e) => {
 							e.preventDefault();
 							if (confirmModal) {
-								if (confirmModal.type === "delete" && deleteInput !== confirmModal.entityName) return;
+								if (
+									confirmModal.type === "delete" &&
+									deleteInput !== confirmModal.entityName
+								)
+									return;
 								const exec = confirmModal.onExecute;
 								setConfirmModal(null);
 								exec();
@@ -243,18 +254,30 @@ function AgentCard({
 					>
 						<DialogHeader>
 							<DialogTitle>
-								{confirmModal?.type === "delete" ? "Delete Agent" : "Rename Agent"}
+								{confirmModal?.type === "delete"
+									? "Delete Agent"
+									: "Rename Agent"}
 							</DialogTitle>
 							<DialogDescription>
 								{confirmModal?.type === "delete" ? (
 									<>
 										This action cannot be undone. Please type{" "}
-										<span className="font-semibold text-foreground select-all">{confirmModal.entityName}</span>{" "}
+										<span className="font-semibold text-foreground select-all">
+											{confirmModal.entityName}
+										</span>{" "}
 										to confirm.
 									</>
 								) : (
 									<>
-										Are you sure you want to rename <span className="font-semibold text-foreground">{confirmModal?.entityName}</span> to <span className="font-semibold text-foreground">{confirmModal?.targetName}</span>?
+										Are you sure you want to rename{" "}
+										<span className="font-semibold text-foreground">
+											{confirmModal?.entityName}
+										</span>{" "}
+										to{" "}
+										<span className="font-semibold text-foreground">
+											{confirmModal?.targetName}
+										</span>
+										?
 									</>
 								)}
 							</DialogDescription>
@@ -282,12 +305,17 @@ function AgentCard({
 							</Button>
 							<Button
 								type="submit"
-								variant={confirmModal?.type === "delete" ? "destructive" : "default"}
+								variant={
+									confirmModal?.type === "delete" ? "destructive" : "default"
+								}
 								disabled={
-									confirmModal?.type === "delete" && deleteInput !== confirmModal.entityName
+									confirmModal?.type === "delete" &&
+									deleteInput !== confirmModal.entityName
 								}
 							>
-								{confirmModal?.type === "delete" ? "Delete Agent" : "Rename Agent"}
+								{confirmModal?.type === "delete"
+									? "Delete Agent"
+									: "Rename Agent"}
 							</Button>
 						</DialogFooter>
 					</form>
@@ -477,7 +505,11 @@ export default function Dashboard() {
 
 	return (
 		<section aria-label="Dashboard overview">
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 select-none" role="group" aria-label="Statistics">
+			<div
+				className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-8 select-none"
+				role="group"
+				aria-label="Statistics"
+			>
 				<Card className="flex-1 h-36">
 					<CardHeader className="pb-0">
 						<p className="text-muted-foreground text-xs font-bold uppercase tracking-wider">
