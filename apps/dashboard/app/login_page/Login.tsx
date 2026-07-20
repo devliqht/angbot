@@ -33,9 +33,7 @@ export default function Login() {
 							Angbot
 						</CardTitle>
 					</div>
-					<CardDescription>
-						Your Discord AI assistant dashboard
-					</CardDescription>
+					<CardDescription>Your Discord AI assistant dashboard</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-col items-center px-10 pb-12">
 					<Button

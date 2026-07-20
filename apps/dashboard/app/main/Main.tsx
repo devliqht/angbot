@@ -98,14 +98,10 @@ function Header({
 							variant="ghost"
 							size="icon"
 							onClick={() =>
-								setCurrentPage(
-									currPage === "Profile" ? "Dashboard" : "Profile",
-								)
+								setCurrentPage(currPage === "Profile" ? "Dashboard" : "Profile")
 							}
 							aria-label={
-								currPage === "Profile"
-									? "Go to Dashboard"
-									: "Go to Profile"
+								currPage === "Profile" ? "Go to Dashboard" : "Go to Profile"
 							}
 							className="rounded-full h-8 w-8 sm:h-9 sm:w-9 p-0 hover:ring-2 hover:ring-primary transition-all cursor-pointer overflow-hidden shrink-0"
 						>

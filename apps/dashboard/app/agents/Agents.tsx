@@ -1,6 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Check, Copy, Edit, FileText, Pencil, Trash2, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -203,7 +203,10 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 					</div>
 				)}
 				{loading ? (
-					<p className="text-muted-foreground text-sm text-center py-4" aria-live="polite">
+					<p
+						className="text-muted-foreground text-sm text-center py-4"
+						aria-live="polite"
+					>
 						Loading documents...
 					</p>
 				) : documents.length === 0 ? (
@@ -217,10 +220,11 @@ function DocumentPanel({ agentId }: { agentId: string }) {
 							role="listitem"
 							className="flex items-center gap-3 rounded-md px-3 py-2 group bg-muted"
 						>
-							<FileText className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-							<span className="truncate text-sm flex-1">
-								{doc.filename}
-							</span>
+							<FileText
+								className="h-4 w-4 shrink-0 text-muted-foreground"
+								aria-hidden="true"
+							/>
+							<span className="truncate text-sm flex-1">{doc.filename}</span>
 							<Badge variant={doc.status === "READY" ? "secondary" : "outline"}>
 								{doc.status === "READY"
 									? `${doc.chunkCount} chunks`
@@ -521,7 +525,9 @@ export default function Agents() {
 		const parentAgentsList = allAgents.filter((a) => !a.parentAgentId);
 		if (viewMode === "agents") {
 			if (parentAgentsList.length > 0) {
-				const isCurrentAgentParent = parentAgentsList.some((a) => a.id === selectedAgentId);
+				const isCurrentAgentParent = parentAgentsList.some(
+					(a) => a.id === selectedAgentId,
+				);
 				if (!isCurrentAgentParent) {
 					setSelectedAgentId(parentAgentsList[0].id);
 				}
@@ -531,7 +537,9 @@ export default function Agents() {
 				(a) => a.parentAgentId === selectedParentId,
 			);
 			if (subagentsList.length > 0) {
-				const isCurrentAgentSub = subagentsList.some((a) => a.id === selectedAgentId);
+				const isCurrentAgentSub = subagentsList.some(
+					(a) => a.id === selectedAgentId,
+				);
 				if (!isCurrentAgentSub) {
 					setSelectedAgentId(subagentsList[0].id);
 				}
@@ -600,7 +608,10 @@ export default function Agents() {
 	const dropdownItems = viewMode === "agents" ? parentAgents : subagents;
 
 	return (
-		<section aria-label="Agent management" className="flex h-full flex-col gap-4">
+		<section
+			aria-label="Agent management"
+			className="flex h-full flex-col gap-4"
+		>
 			{/* Top bar: mode toggle + agent selector */}
 			<div className="flex flex-wrap items-center justify-between w-full gap-3" role="toolbar" aria-label="Agent controls">
 				<div className="flex flex-wrap items-center gap-2 sm:gap-4">
@@ -683,7 +694,9 @@ export default function Agents() {
 								size="icon-sm"
 								className="h-8 w-8 text-muted-foreground hover:text-white cursor-pointer"
 								onClick={() => {
-									const agentToRename = dropdownItems.find((a) => a.id === selectedAgentId);
+									const agentToRename = dropdownItems.find(
+										(a) => a.id === selectedAgentId,
+									);
 									if (agentToRename) {
 										setRenamingAgent(agentToRename);
 										setRenameNewName(agentToRename.name);
@@ -730,8 +743,8 @@ export default function Agents() {
 			{viewMode === "subagents" && subagents.length === 0 && (
 				<div className="flex flex-1 items-center justify-center">
 					<p className="text-muted-foreground text-sm">
-						No subagents for this agent yet. Click &quot;+ Add Subagent&quot; to create
-						one.
+						No subagents for this agent yet. Click &quot;+ Add Subagent&quot; to
+						create one.
 					</p>
 				</div>
 			)}
@@ -817,14 +830,24 @@ export default function Agents() {
 			/>
 
 			{/* Rename Dialog */}
-			<Dialog open={!!renamingAgent} onOpenChange={(open) => !open && setRenamingAgent(null)}>
+			<Dialog
+				open={!!renamingAgent}
+				onOpenChange={(open) => !open && setRenamingAgent(null)}
+			>
 				<DialogContent className="bg-[#202127] border border-[#2a2a2a] text-white">
 					<DialogHeader>
-						<DialogTitle className="text-white font-bold">Rename {renamingAgent?.parentAgentId ? "Subagent" : "Agent"}</DialogTitle>
+						<DialogTitle className="text-white font-bold">
+							Rename {renamingAgent?.parentAgentId ? "Subagent" : "Agent"}
+						</DialogTitle>
 					</DialogHeader>
-					<form onSubmit={triggerRenameSubagentSubmit} className="flex flex-col gap-4">
+					<form
+						onSubmit={triggerRenameSubagentSubmit}
+						className="flex flex-col gap-4"
+					>
 						<div className="flex flex-col gap-1.5">
-							<Label htmlFor="rename-name" className="text-gray-400">New Name</Label>
+							<Label htmlFor="rename-name" className="text-gray-400">
+								New Name
+							</Label>
 							<Input
 								id="rename-name"
 								value={renameNewName}

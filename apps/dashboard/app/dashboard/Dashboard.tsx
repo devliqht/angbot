@@ -30,7 +30,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 
-function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () => void }) {
+function AgentCard({
+	agent,
+	onRefresh,
+}: {
+	agent: ContextAgent;
+	onRefresh: () => void;
+}) {
 	const [expanded, setExpanded] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [newName, setNewName] = useState(agent.name);
@@ -119,7 +125,11 @@ function AgentCard({ agent, onRefresh }: { agent: ContextAgent; onRefresh: () =>
 			<Collapsible open={expanded} onOpenChange={setExpanded}>
 				<div className="flex w-full items-center justify-between p-5 pr-6 rounded-t-lg select-none">
 					{isEditing ? (
-						<form onSubmit={triggerRename} className="flex items-center gap-2 flex-1 mr-4" onClick={(e) => e.stopPropagation()}>
+						<form
+							onSubmit={triggerRename}
+							className="flex items-center gap-2 flex-1 mr-4"
+							onClick={(e) => e.stopPropagation()}
+						>
 							<Input
 								value={newName}
 								onChange={(e) => setNewName(e.target.value)}

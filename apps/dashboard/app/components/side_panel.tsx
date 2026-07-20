@@ -1,9 +1,9 @@
 "use client";
 
 import { useContext } from "react";
-import { MainContext } from "../context/Main_Context";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { MainContext } from "../context/Main_Context";
 import HomepageButton from "./homepage_button";
 import LogoutButton from "./logout_button";
 

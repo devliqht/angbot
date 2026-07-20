@@ -2,14 +2,10 @@
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useContext } from "react";
-import { ServerContext } from "../context/Server_Context";
-import {
-	Avatar,
-	AvatarFallback,
-	AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ServerContext } from "../context/Server_Context";
 
 const DISCORD_BOT_PERMISSIONS = 68608; // View Channels, Send Messages, Read Message History
 
@@ -90,9 +86,7 @@ export default function Profile() {
 						<Card key={server.id} role="listitem">
 							<CardContent className="flex items-center gap-4 py-4">
 								<ServerIcon name={server.name} iconUrl={server.iconUrl} />
-								<span className="text-sm font-medium">
-									{server.name}
-								</span>
+								<span className="text-sm font-medium">{server.name}</span>
 							</CardContent>
 						</Card>
 					))}

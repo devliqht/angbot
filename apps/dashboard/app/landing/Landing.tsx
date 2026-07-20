@@ -57,7 +57,10 @@ function HeroSection() {
 		: "/login_page?callbackUrl=/main?action=add-bot";
 
 	return (
-		<section aria-labelledby="hero-heading" className="flex items-center select-none">
+		<section
+			aria-labelledby="hero-heading"
+			className="flex items-center select-none"
+		>
 			<div>
 				<Image
 					src={logo}
@@ -73,11 +76,14 @@ function HeroSection() {
 					Angbot
 				</h1>
 				<h2 className="text-4xl">
-					Your study buddy, on{" "}
-					<span className="text-[#7289DA]">Discord!</span>
+					Your study buddy, on <span className="text-[#7289DA]">Discord!</span>
 				</h2>
 				<div className="mt-2">
-					<Button asChild size="lg" className="rounded-full gap-3 px-5 py-2.5 hover:scale-105 transition-all duration-150">
+					<Button
+						asChild
+						size="lg"
+						className="rounded-full gap-3 px-5 py-2.5 hover:scale-105 transition-all duration-150"
+					>
 						<Link href={inviteLink}>
 							<Image
 								src={discord_logo}
